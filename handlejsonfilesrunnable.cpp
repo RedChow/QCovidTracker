@@ -1,0 +1,184 @@
+#include "handlejsonfilesrunnable.h"
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QVariant>
+#include <QThread>
+#include <QDebug>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDate>
+#include <memory>
+#include <QHash>
+#include <QVector>
+
+HandleJsonFilesRunnable::HandleJsonFilesRunnable()
+{
+
+}
+
+HandleJsonFilesRunnable::~HandleJsonFilesRunnable() {
+    qDebug() << "THREAD DESTROYED";
+}
+
+QSqlDatabase HandleJsonFilesRunnable::db() {
+    QString threadDBName = QString::number((qintptr)QThread::currentThreadId());
+
+    dbi = new DatabaseInterface(0);
+    dbi->setThreadDBName(threadDBName);
+    QSqlDatabase mdb = dbi->getThreadDB();
+    return mdb;
+
+}
+
+void HandleJsonFilesRunnable::setJsonDirectory(QString dir) {
+    jsonDirectory = dir;
+}
+
+void HandleJsonFilesRunnable::setDbName(QString p_dbName) {
+    dbName = p_dbName;
+}
+
+void HandleJsonFilesRunnable::setJsonFileList(QStringList jsonFiles) {
+    jsonFileList = jsonFiles;
+}
+
+void HandleJsonFilesRunnable::setFileName(QString p_FileName) {
+    fileName = p_FileName;
+}
+
+void HandleJsonFilesRunnable::setBeginningAndEnd(int b, int e) {
+    beginning = b;
+    end = e;
+}
+
+void HandleJsonFilesRunnable::run() {
+    //QString connectionName = QString("PSQL-%1").arg(this); // store connection name
+    //db = QSqlDatabase::addDatabase("QPSQL", connectionName);
+
+
+    int start{0};
+    QJsonObject json;
+    int stateId{-1};
+    QSqlQuery query(db());
+    QSqlQuery insertQuery(db());
+    int data_type_enum_id{1};
+    int json_mapping_id{-1};
+    QDate d_date;
+    QHash<QString, QVector<int>> jsonMappingsHash;
+    QHash<QString, QVector<int>>::iterator jsonMappingsHashIterator;
+    query.exec("SELECT json_key, json_mappings_id, data_type_enum_id FROM json_mappings");
+    qDebug() << query.lastError();
+    while (query.next()) {
+        QVector<int> qVector;
+        qVector.push_back(query.value(1).toInt());
+        qVector.push_back(query.value(2).toInt());
+        jsonMappingsHash.insert(query.value(0).toString(), qVector);
+    }
+    query.prepare("SELECT json_key FROM json_mappings WHERE deprecated=:dep");
+    query.bindValue(":dep", 1);
+    query.exec();
+    QStringList deprecated;
+    while (query.next()) {
+        deprecated << query.value(0).toString();
+    }
+    QVariantList jsonKeyVL;
+    QVariantList dataEnumVL;
+    QVariantList stateInfoIdVL;
+    QVariantList stringValueVL;
+    QVariantList integerValueVL;
+    for (start = beginning; start < end; start++) {
+        //qDebug() << jsonFileList[start] << " " << jsonDirectory;
+        QFile jsonFile(jsonDirectory + jsonFileList[start]);
+        jsonFile.open(QFile::ReadOnly);
+        json = QJsonDocument().fromJson(jsonFile.readAll()).object();
+        if (!json["error"].isNull()) {
+            if (json["error"].toBool()) {
+                qDebug() << jsonFileList[start];
+                continue;
+            }
+        }
+        if (!jsonFile.isOpen()) {
+            continue;
+        }
+        stateId = json["stateId"].toInt();
+        d_date = QDate::fromString(QString::number(json["date"].toInt()), "yyyyMMdd");
+        for (auto key: json.keys()) {
+            if (deprecated.contains(key, Qt::CaseInsensitive)) {
+                continue;
+            }
+            data_type_enum_id = 1;
+            jsonMappingsHashIterator = jsonMappingsHash.find(key);
+            if (jsonMappingsHashIterator == jsonMappingsHash.end()) {
+                qDebug() << "key not found " << key;
+                if (!json.value(key).isString()) {
+                    data_type_enum_id = 2;
+                }
+                insertQuery.prepare("INSERT INTO json_mappings (json_key, data_type_enum_id) VALUES (:jk, :dtei) RETURNING json_mappings_id;");
+                insertQuery.bindValue(":jk", key);
+                insertQuery.bindValue(":dtei", data_type_enum_id);
+                insertQuery.exec();
+                if(insertQuery.next()) {
+                    json_mapping_id = insertQuery.value(0).toInt();
+                }
+                else {
+                    query.prepare("SELECT json_mappings_id, data_type_enum_id FROM json_mappings WHERE json_key=:jk");
+                    query.bindValue(":jk", key);
+                    query.exec();
+                    query.next();
+                    json_mapping_id = query.value(0).toInt();
+                    data_type_enum_id = query.value(1).toInt();
+                }
+                QVector<int> qVector;
+                qVector.push_back(json_mapping_id);
+                qVector.push_back(data_type_enum_id);
+                jsonMappingsHash.insert(key, qVector);
+            }
+            else {
+                json_mapping_id = jsonMappingsHash[key][0];
+                data_type_enum_id = jsonMappingsHash[key][1];
+            }
+            if (json_mapping_id > -1) {
+                //START FOR BATCH INSERT
+                insertQuery.prepare("INSERT INTO covid_history (json_mappings_id, state_info_id, string_value, integer_value, covid_history_date) VALUES (:jmi, :sii, :sv, :iv, :chd)");
+                insertQuery.bindValue(":jmi", json_mapping_id);
+                insertQuery.bindValue(":sii", stateId);
+                if (data_type_enum_id == 2) {
+                    insertQuery.bindValue(":sv", QVariant(QVariant::String));
+                    insertQuery.bindValue(":iv", json[key].toInt());
+                }
+                else {
+                    insertQuery.bindValue(":sv", json[key].toString());
+                    insertQuery.bindValue(":iv", QVariant(QVariant::Int));
+                }
+                insertQuery.bindValue(":chd", d_date.toString("yyyy-MM-dd"));
+                //END FOR BATCH INSERT
+                if (!insertQuery.exec()) {
+                    //add update
+                    QSqlQuery updateQuery(db());
+                    if (data_type_enum_id == 2) {
+                        updateQuery.prepare("UPDATE covid_history SET integer_value=:iv WHERE state_info_id=:sii AND json_mappings_id=:jmi AND covid_history_date=:chd");
+                        updateQuery.bindValue(":iv", json[key].toInt());
+                    }
+                    else {
+                        updateQuery.prepare("UPDATE covid_history SET string_value=:sv WHERE state_info_id=:sii AND json_mappings_id=:jmi AND covid_history_date=:chd");
+                        updateQuery.bindValue(":sv", json[key].toString());
+                    }
+                    updateQuery.bindValue(":sii", stateId);
+                    updateQuery.bindValue(":jmi", json_mapping_id);
+                    updateQuery.bindValue(":chd", d_date.toString("yyyy-MM-dd"));
+                    updateQuery.exec();
+                }
+            }
+        }
+        //qDebug() << jsonFileList[start];
+        emit sendStatusMessage(jsonFileList[start]);
+        if (!jsonFile.rename(jsonDirectory + "process_files/" + jsonFileList[start])) {
+            QFile tempFile(jsonDirectory + "process_files/" + jsonFileList[start]);
+            tempFile.remove();
+            jsonFile.rename(jsonDirectory + "process_files/" + jsonFileList[start]);
+            //TODO: add check for removing jsonFile
+            //jsonFile.remove();
+        }
+    }
+}
