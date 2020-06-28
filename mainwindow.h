@@ -16,6 +16,8 @@
 #include "statestruct.h"
 #include "jsonfileshandler.h"
 #include "plotmodel.h"
+#include "mainchartview.h"
+#include "mainchart.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -54,12 +56,16 @@ public:
     void loadSettings();
     void saveSettings();
 
+    MainChart *chart;
+    MainChartView *mainChartView;
+
 public slots:
     void stateVectorsReady(std::vector<StateInfo>);
     void jsonDirChanged();
     void receiveStatusMessage(QString);
     void parsingFilesDone();
     void updateFilesToDownload(int);
+    void statusBarMessageDone();
 private:
     Ui::MainWindow *ui;
 };

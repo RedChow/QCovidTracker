@@ -25,7 +25,6 @@ QSqlDatabase DatabaseInterface::getThreadDB() {
         mdb.setUserName(this->username);
         mdb.setPassword(this->password);
         mdb.open();
-        qDebug() << threadDBName << " Opened";
     }
     return mdb;
 }
@@ -41,5 +40,4 @@ QSqlDatabase DatabaseInterface::getDatabase() {
 
 DatabaseInterface::~DatabaseInterface() {
     mDatabase->close();
-    //QSqlDatabase::removeDatabase(dbName);
 }

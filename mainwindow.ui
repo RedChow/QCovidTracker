@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Covid Tracker</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -30,7 +30,7 @@
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
-          <widget class="QChartView" name="graphicsViewPositiveTestsPlots"/>
+          <widget class="MainChartView" name="graphicsViewPositiveTestsPlots"/>
           <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>
@@ -61,7 +61,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="checkBox">
+             <widget class="QCheckBox" name="checkBoxShowDifferences">
               <property name="text">
                <string>Show Differences</string>
               </property>
@@ -182,9 +182,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QChartView</class>
+   <class>MainChartView</class>
    <extends>QGraphicsView</extends>
-   <header>QtCharts</header>
+   <header>mainchartview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -14,7 +14,7 @@ class PlotModel : public QAbstractTableModel
 public:
     PlotModel(QObject *parent = nullptr);
     ~PlotModel();
-    //QTableAbstractModel
+    //Rquired QTableAbstractModel functions
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -24,8 +24,7 @@ public:
     //helpers
     void populateData();
     void clearTable();
-    std::vector<std::vector<int>> tableData;
-    std::vector<qint64> tableDataDates;
+    QVector<QVector<int>> tableData;
     QVector<QDate> tableQDates;
     int stateId;
     void setStateId(int p_stateId);

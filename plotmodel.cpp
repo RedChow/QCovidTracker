@@ -32,50 +32,45 @@ void PlotModel::setHeaders(QStringList p_Headers) {
 
 void PlotModel::populateData() {
     beginResetModel();
-
     QString query_str = "(SELECT json_mappings_id, json_key FROM json_mappings WHERE json_key='positive')"
                         "UNION"
                         "(SELECT json_mappings_id, json_key FROM json_mappings WHERE json_key='negative')"
                         "ORDER BY json_key ASC";
     QSqlQuery query(query_str, mdb);
     QSqlQuery queryNeg(mdb);
+    QSqlQuery megaQuery(mdb);
+    //TODO: Add error checking here and escape route if positive and negative do not exist
     query.next();
     int negative_id = query.value(0).toInt();
     query.next();
     int positive_id = query.value(0).toInt();
-    /*
-     *
-     *  TODO: Update the following two queries with:
-        SELECT a.covid_history_date, a.integer_value AS positive, b.integer_value AS negative FROM
-        (SELECT integer_value, covid_history_date
-        FROM covid_history
-        WHERE json_mappings_id = 602
-        AND state_info_id = 105) AS a
-        FULL OUTER JOIN
-        (SELECT integer_value, covid_history_date
-        FROM covid_history
-        WHERE json_mappings_id =  562
-        AND state_info_id = 105) AS b
-        ON a.covid_history_date = b.covid_history_date
-        ORDER BY covid_history_date
-     */
-    query.prepare("SELECT integer_value, covid_history_date FROM covid_history WHERE json_mappings_id = :jmi AND state_info_id = :sii ORDER BY covid_history_date");
-    query.bindValue(":jmi", positive_id);
-    query.bindValue(":sii", stateId);
-    query.exec();
-    queryNeg.prepare("SELECT integer_value FROM covid_history WHERE json_mappings_id = :jmi AND state_info_id = :sii ORDER BY covid_history_date");
-    queryNeg.bindValue(":jmi", negative_id);
-    queryNeg.bindValue(":sii", stateId);
-    queryNeg.exec();
-    std::vector<int> positiveVector(query.size());
-    std::vector<int> negativeVector(query.size());
+
+    megaQuery.prepare("SELECT a.covid_history_date, a.integer_value AS positive, b.integer_value AS negative FROM "
+        "(SELECT integer_value, covid_history_date "
+        "FROM covid_history "
+        "WHERE json_mappings_id = :jmiPos "
+        "AND state_info_id = :sii) AS a "
+        "FULL OUTER JOIN "
+        "(SELECT integer_value, covid_history_date "
+        "FROM covid_history "
+        "WHERE json_mappings_id = :jmiNeg "
+        "AND state_info_id = :sii) AS b "
+        "ON a.covid_history_date = b.covid_history_date "
+        "ORDER BY covid_history_date");
+    megaQuery.bindValue(":jmiPos", positive_id);
+    megaQuery.bindValue(":jmiNeg", negative_id);
+    megaQuery.bindValue(":sii", stateId);
+    megaQuery.exec();
+    QVector<int> positiveVector(megaQuery.size());
+    QVector<int> negativeVector(megaQuery.size());
     int vectorPosition{0};
-    while (query.next() && queryNeg.next()) {
-        positiveVector[vectorPosition] = query.value(0).toInt();
-        tableQDates.push_back(query.value(1).toDate());
-        negativeVector[vectorPosition] = queryNeg.value(0).toInt() + query.value(0).toInt();
+    while (megaQuery.next()) {
+        tableQDates.push_back(megaQuery.value(0).toDate());
+        positiveVector[vectorPosition] = megaQuery.value(1).toInt();
+        negativeVector[vectorPosition] = megaQuery.value(2).toInt() + megaQuery.value(1).toInt();
         vectorPosition++;
     }
+
     tableData.push_back(positiveVector);
     tableData.push_back(negativeVector);
     endResetModel();
@@ -93,6 +88,9 @@ bool PlotModel::removeRows(int row, int count, const QModelIndex &parent) {
         tableQDates.remove(rowCount);
     }
     endRemoveRows();
+    for (rowCount = tableData.size() - 1; rowCount >= 0; rowCount--) {
+        tableData.remove(rowCount);
+    }
     return true;
 }
 
@@ -102,11 +100,12 @@ void PlotModel::clearTable() {
 
 int PlotModel::columnCount(const QModelIndex &parent) const {
     Q_UNUSED(parent);
+    //TODO: Add dynamic headers
     return 13;
-    //return headers.size();
 }
 
 QVariant PlotModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    //TODO: Add dnymaic headers
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
             case 0:
@@ -171,11 +170,12 @@ QVariant PlotModel::data(const QModelIndex &index, int role ) const {
         return 0;
     }
     else if (columnModded == 2) { //index.column() == 3, 9
+
         //s_m = (N_1 - N_0) + (N_2 - N_1) + ... + (N_{m-1} - N_{m-2}) + (N_m - N_{m-1}) =
         //      N_m - N_0
-         /*  moving_average 	= s_m - s_{m-days}/days
-         *  				= (N_m - N_0) - (N_{m-days} - N_0) / days
-         *      			= N_m - N_0 - N_{m-days} + N_0     / days
+         /*  moving_average 	= (s_m - s_{m-days})/days
+         *  				= ((N_m - N_0) - (N_{m-days} - N_0)) / days
+         *      			= (N_m - N_0 - N_{m-days} + N_0 )    / days
          * 			   		= (N_m - N_{m-days})/days
          */
         return tableData[columnIndex][index.row()] - tableData[index.column()/6][0];

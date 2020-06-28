@@ -18,10 +18,10 @@ private:
     QString threadDBName;
 
     QSqlDatabase* mDatabase;
-    const QString hostName = "";
-    const QString databaseName = "";
-    const QString username = "";
-    const QString password = "";
+    const QString hostName = "localhost";
+    const QString databaseName = "coviddata";
+    const QString username = "postgres";
+    const QString password = "h8Aw72eZhun86pg";
 };
 
 #endif // DATABASEINTERFACE_H

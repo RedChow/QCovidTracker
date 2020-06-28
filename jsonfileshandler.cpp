@@ -15,13 +15,17 @@ void JsonFilesHandler::readJsonFilesDir(QString dir) {
      QDir directory(dir);
      QStringList jsonFiles = directory.entryList(QStringList() << "*.json", QDir::Files);
      emit updateNumberOfFiles(jsonFiles.size());
-    //void jsonReceiveStatusMessage(QString);
      QThreadPool *threadpool = new QThreadPool();
      int maxThreads = threadpool->maxThreadCount();
      int filesPerThread = jsonFiles.size()/maxThreads;
      int lastThreadCount = jsonFiles.size() - maxThreads*filesPerThread;
      int threadNumber{0};
-     qDebug() << maxThreads << " " << filesPerThread << " " <<lastThreadCount;
+     /* There might be an optimum number of files here in which the overhead in creating
+      * threads outweighs just using one
+      * For example splitting 80 files into 4 threads might be slower than just using
+      * one thread; don't know if this can be done in general, or if there's a heuristic
+      * argument
+      */
      if (jsonFiles.size() != 0 && jsonFiles.size() <= maxThreads) {
              HandleJsonFilesRunnable *jsonFileRunnable = new HandleJsonFilesRunnable();
              jsonFileRunnable->setDbName(QString::number(threadNumber));
@@ -47,10 +51,10 @@ void JsonFilesHandler::readJsonFilesDir(QString dir) {
              connect(jsonFileRunnable, SIGNAL(sendStatusMessage(QString)), this, SLOT(jsonReceiveStatusMessage(QString)));
              threadpool->start(jsonFileRunnable);
          }
+         //We're in a thread outside of the main event loop, waiting here won't slow the GUI
          threadpool->waitForDone();
          emit threadsAreDone();
      }
-     qDebug() << "FINISHED";
 }
 
 void JsonFilesHandler::jsonReceiveStatusMessage(QString message) {

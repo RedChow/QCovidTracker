@@ -12,6 +12,7 @@
 #include <QSettings>
 #include <QStatusBar>
 #include "getcovidinfo.h"
+#include "customlineseries.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -31,14 +32,18 @@ MainWindow::MainWindow(QWidget *parent)
     jsonFilesHandler = new JsonFilesHandler();
     futureWatcher = new QFutureWatcher<void>();
     QFuture<void> jsonFileReaderConcurrent = QtConcurrent::run(jsonFilesHandler, &JsonFilesHandler::readJsonFilesDir, jsonFileDir);
-    connect(jsonFilesHandler, SIGNAL(jsonSendStatusMessage(QString)), this, SLOT(receiveStatusMessage(QString)));
-    connect(jsonFilesHandler, SIGNAL(threadsAreDone()), this, SLOT(parsingFilesDone()));
-    connect(jsonFilesHandler, SIGNAL(updateNumberOfFiles(int)), this, SLOT(updateFilesToDownload(int)));
+    connect(jsonFilesHandler, SIGNAL(jsonSendStatusMessage(QString)), this, SLOT(receiveStatusMessage(QString)), Qt::UniqueConnection);
+    connect(jsonFilesHandler, SIGNAL(threadsAreDone()), this, SLOT(parsingFilesDone()), Qt::UniqueConnection);
+    connect(jsonFilesHandler, SIGNAL(updateNumberOfFiles(int)), this, SLOT(updateFilesToDownload(int)), Qt::UniqueConnection);
     futureWatcher->setFuture(jsonFileReaderConcurrent);
 
-    //TableView stuff
+    //TableView
     plotModel = new PlotModel();
     ui->tableViewPlots->setModel(plotModel);
+
+    //
+    this->grabGesture(Qt::PanGesture);
+    this->grabGesture(Qt::PinchGesture);
 }
 
 void MainWindow::updateFilesToDownload(int newNumber) {
@@ -70,7 +75,7 @@ void MainWindow::getData() {
 }
 
 void MainWindow::stateVectorsReady(std::vector<StateInfo> stateInfoVector) {
-    ui->statusbar->showMessage(QString("%1 files to download...").arg(stateInfoVector.size()), 10*1000);
+    ui->statusbar->showMessage(QString("Querying %1 files...").arg(stateInfoVector.size()), 10*1000);
     filesToDownload = stateInfoVector.size();
     countFiles = 0;
 
@@ -108,7 +113,7 @@ void MainWindow::replyFinished(QNetworkReply *r,  int stateId) {
         if (readyReadJsonFiles->isActive()) {
             readyReadJsonFiles->stop();
         }
-        readyReadJsonFiles->start(1*1000);
+        readyReadJsonFiles->start(5*1000);
     }
 }
 
@@ -116,8 +121,6 @@ void MainWindow::jsonDirChanged() {
     if (futureWatcher->isFinished()) {
         readyReadJsonFiles->stop();
         QFuture<void> jsonFileReaderConcurrent = QtConcurrent::run(jsonFilesHandler, &JsonFilesHandler::readJsonFilesDir, jsonFileDir);
-        connect(jsonFilesHandler, SIGNAL(jsonSendStatusMessage(QString)), this, SLOT(receiveStatusMessage(QString)));
-        connect(jsonFilesHandler, SIGNAL(threadsAreDone()), this, SLOT(parsingFilesDone()));
         futureWatcher->setFuture(jsonFileReaderConcurrent);
     }
     else {
@@ -157,15 +160,20 @@ void MainWindow::plotPositiveTests() {
     plotModel->setHeaders(headers);
     plotModel->populateData();
 
-    QChart *chart = new QChart();
-    QLineSeries *series = new QLineSeries;
-    QLineSeries *movingAvgSeries = new QLineSeries();
-    QLineSeries *testsSeries = new QLineSeries();
-    QLineSeries *testsMovingAvgSeries = new QLineSeries();
+    chart = new MainChart();
+    chart->legend()->hide();
+    CustomLineSeries *series = new CustomLineSeries();
+    CustomLineSeries *movingAvgSeries = new CustomLineSeries();
+    CustomLineSeries *testsSeries = new CustomLineSeries();
+    CustomLineSeries *testsMovingAvgSeries = new CustomLineSeries();
 
     QVXYModelMapper *positiveMapper = new QVXYModelMapper();
     positiveMapper->setXColumn(0);
-    positiveMapper->setYColumn(2);
+    if (ui->checkBoxShowDifferences->isChecked()) {
+        positiveMapper->setYColumn(2);
+    } else {
+        positiveMapper->setYColumn(1);
+    }
     positiveMapper->setSeries(series);
     positiveMapper->setModel(plotModel);
     chart->addSeries(series);
@@ -181,7 +189,11 @@ void MainWindow::plotPositiveTests() {
 
     QVXYModelMapper *testsMapper = new QVXYModelMapper();
     testsMapper->setXColumn(0);
-    testsMapper->setYColumn(8);
+    if (ui->checkBoxShowDifferences->isChecked()) {
+        testsMapper->setYColumn(8);
+    } else {
+        testsMapper->setYColumn(7);
+    }
     testsMapper->setSeries(testsSeries);
     testsMapper->setModel(plotModel);
     chart->addSeries(testsSeries);
@@ -192,6 +204,16 @@ void MainWindow::plotPositiveTests() {
     testsMovingAvgMapper->setSeries(testsMovingAvgSeries);
     testsMovingAvgMapper->setModel(plotModel);
     chart->addSeries(testsMovingAvgSeries);
+
+    QDateTimeAxis *axisX = new QDateTimeAxis;
+    axisX->setTickCount(10);
+    axisX->setFormat("MM-dd");
+    axisX->setTitleText("Date");
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+    if (days > 2) {
+        movingAvgSeries->attachAxis(axisX);
+    }
 
     QValueAxis *axisY = new QValueAxis();
     chart->addAxis(axisY, Qt::AlignLeft);
@@ -206,16 +228,43 @@ void MainWindow::plotPositiveTests() {
     testsSeries->attachAxis(axisTestsY);
     testsMovingAvgSeries->attachAxis(axisTestsY);
 
+    QPen posPen;
+    posPen.setColor(QColor(0, 102, 204));
+    series->setPen(posPen);
+
     QPen testsPen;
-    testsPen.setStyle(Qt::DashLine);
-    testsPen.setColor(QColor(0, 51, 153));
+    //testsPen.setStyle(Qt::DashLine);
+    //255, 153, 102
+    testsPen.setColor(QColor(255, 153, 102));
     testsSeries->setPen(testsPen);
+
+    if (days > 2) {
+        QPen positiveMovingAvgPen;
+        positiveMovingAvgPen.setStyle(Qt::DashLine);
+        positiveMovingAvgPen.setColor(QColor(0, 102, 204));
+        movingAvgSeries->setPen(positiveMovingAvgPen);
+    }
 
     QPen testsMovingAvgPen;
     testsMovingAvgPen.setStyle(Qt::DashDotLine);
-    testsMovingAvgPen.setColor(QColor(0, 51, 102));
+    testsMovingAvgPen.setColor(QColor(255, 153, 102));
     testsMovingAvgSeries->setPen(testsMovingAvgPen);
 
+    connect(series, SIGNAL(setToolTip(QPointF, bool, QAbstractSeries*)), ui->graphicsViewPositiveTestsPlots,  SLOT(showThatToolTip(QPointF, bool, QAbstractSeries*)));
+    connect(movingAvgSeries, SIGNAL(setToolTip(QPointF, bool, QAbstractSeries*)), ui->graphicsViewPositiveTestsPlots,  SLOT(showThatToolTip(QPointF, bool, QAbstractSeries*)));
+    connect(testsSeries, SIGNAL(setToolTip(QPointF, bool, QAbstractSeries*)), ui->graphicsViewPositiveTestsPlots,  SLOT(showThatToolTip(QPointF, bool, QAbstractSeries*)));
+    connect(testsMovingAvgSeries, SIGNAL(setToolTip(QPointF, bool, QAbstractSeries*)), ui->graphicsViewPositiveTestsPlots,  SLOT(showThatToolTip(QPointF, bool, QAbstractSeries*)));
+
+    ui->graphicsViewPositiveTestsPlots->clearCustomLineSeriesVector();
+
+    ui->graphicsViewPositiveTestsPlots->addCustomLineSeries(series);
+    ui->graphicsViewPositiveTestsPlots->addCustomLineSeries(testsSeries);
+    if (days > 2) {
+        ui->graphicsViewPositiveTestsPlots->addCustomLineSeries(movingAvgSeries);
+        ui->graphicsViewPositiveTestsPlots->addCustomLineSeries(testsMovingAvgSeries);
+    }
+
+    ui->graphicsViewPositiveTestsPlots->setMainChart(chart);
     ui->graphicsViewPositiveTestsPlots->setChart(chart);
 }
 
@@ -227,8 +276,13 @@ void MainWindow::receiveStatusMessage(QString message) {
 
 void MainWindow::parsingFilesDone() {
     ui->statusbar->showMessage(QString("%1/%2 json files parsed").arg(countFiles).arg(filesToDownload), 10*1000);
+    connect(ui->statusbar, &QStatusBar::messageChanged, this, &MainWindow::statusBarMessageDone);
+}
+
+void MainWindow::statusBarMessageDone() {
     filesToDownload = 0;
     countFiles = 0;
+    disconnect(ui->statusbar, &QStatusBar::messageChanged, this, &MainWindow::statusBarMessageDone);
 }
 
 void MainWindow::loadSettings() {
@@ -236,12 +290,17 @@ void MainWindow::loadSettings() {
     settingsFilePath = basePath + "/QCovidTrackerSettings.ini";
     QSettings settings(settingsFilePath, QSettings::NativeFormat);
     jsonFileDir = settings.value("jsonFileDir", basePath + "/json_downloads/").toString();
-
+    ui->splitter->restoreState(settings.value("splitter").toByteArray());
+    move(settings.value("pos", QPoint(100, 100)).toPoint());
+    resize(settings.value("size", QSize(800, 600)).toSize());
 }
 
 void MainWindow::saveSettings() {
     QSettings settings(settingsFilePath, QSettings::NativeFormat);
     settings.setValue("jsonFileDir", jsonFileDir);
+    settings.setValue("splitter", ui->splitter->saveState());
+    settings.setValue("pos", pos());
+    settings.setValue("size", size());
 }
 
 MainWindow::~MainWindow()
