@@ -1,6 +1,6 @@
 # QCovidTracker
 
-    <h2>Introduction</h2>
+   <h2>Introduction</h2>
     This is a personal project aimed at getting re-acquainted with Qt. I have developed around a dozen or so projects, but it has been several years since my last completed project.
     It is bare-bones at the moment, but there are many additions that I have planned.
     <h2>Usage</h2>
