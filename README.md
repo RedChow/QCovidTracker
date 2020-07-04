@@ -13,7 +13,8 @@
     It defaults to show the differences between consecutive days, as this proves to typically more useful that the total accumulated.
     This is because differences show how fast outbreaks are happening.
     These graphs also allow the user to see how differences are stacking up against test numbers.
-    
+    <h3>Screenshots</h3>
+    ![Alt text](/screenshots/getting_data.png?raw=true "Getting Data")
     
     
    <h2>Environment</h2>
