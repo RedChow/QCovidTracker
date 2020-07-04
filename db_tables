@@ -1,0 +1,32 @@
+covid_history
+	Columns:type
+		json_mappings_id: integer
+		state_info_id: integer
+		string_value: text
+		integer_value: integer
+		covid_history_date: date
+	Constraints
+		UNIQUE: json_mappings_id, state_info_id, covid_history_date
+data_type_enum
+	Columns:type
+		date_type_enum_id: serial (sometimes referred to as auto increment in other DB systems)
+		data_type: text
+	Constraints:
+		PK: data_type_enum_id
+json_mappings
+	Columns:type
+		json_mappings_id: serial (auto increment integer; cross-reference in covid_history)
+		json_key:text (key in the json object from data file we parse)
+		data_type_enum_id: integer (cross-references in data_type_enum)
+		deprecated: integer (0 = false, 1 = true; 1 means it will no longer be stored)
+	Constraints:
+		UNIQUE: json_key
+		PK: json_mappings_id
+state_info
+	Columns:type
+		state_info_id: serial (auto increment)
+		state_abbreviation: text
+		state_name: text
+	Constraints:
+		UNIQUE: state_abbreviation, state_name
+		PK: state_info_id
