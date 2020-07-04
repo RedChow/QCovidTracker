@@ -17,7 +17,7 @@
     ![Alt text](/screenshots/getting_data.png?raw=true "Getting Data")
     
    ![Alt text](/screenshots/AZ_positive_tests.png?raw=true "AZ Positive/Tests")
-   The above screenshot shows default graphs.
+   The screenshot shows default graphs.
    
   ![Alt text](/screenshots/AZ_raw_data.png?raw=true "Raw Data")
   Graphs on "Positive/Tests" tab are constructed from the raw data table. The raw data table also shows slope calculations over the moving averages.
@@ -28,6 +28,8 @@
   ![Alt text](/screenshots/AZ_tracing.png?raw=true "Tracing")
   Right-clicking will be up a context menu in which the user can select/deselect a "Tracing" option.
     
+    
+   There also exist options for zooming in and out using the mouse, using the arrow keys, and by using A, W, S, and D keys (not case-sensitive).
     
    <h2>Environment</h2>
         This was developed on Fedora 31 and openSUSE Tumbleweed using Qt Creator 4.12.3, Qt 5.14.2, and PostgreSQL 12.3.
