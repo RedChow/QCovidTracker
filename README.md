@@ -9,20 +9,20 @@
     The JSON files are downloaded using the API from http://covidtracking.com.
     Because the JSON fields can change without notice, this program will automatically add new JSON fields into the database seamlessly.
     
-    Currently the "Positive/Tests" tab show the positive number of positive test results along with the test numbers. 
+  Currently the "Positive/Tests" tab show the positive number of positive test results along with the test numbers. 
     It defaults to show the differences between consecutive days, as this proves to typically more useful that the total accumulated.
     This is because differences show how fast outbreaks are happening.
     These graphs also allow the user to see how differences are stacking up against test numbers.
     
     
     
-    <h2>Environment</h2>
+   <h2>Environment</h2>
         This was developed on Fedora 31 and openSUSE Tumbleweed using Qt Creator 4.12.3, Qt 5.14.2, and PostgreSQL 12.3.
     <h2>Database Configuration</h2>
         I went through a few database table designs before ultimately settling on the current. There were many differents ways of designing the tables and how they all interact, One design that I opposed is using column names as the JSON object keys. I've worked on systems with 250+ column names where each column had exactly one corresponding value in an entity. I cannot stress enough how awful it was working with said system. And since this project is supposed to be fun, that's a route I avoided at all costs.
         I originally though that the string fields in the dataset would be more interesting, however, in hindsight I could have left out the strng column all together.
         
-        There are four main tables that are covered in the db_tables file. I originally planned on there possibly being more data_enum_types, but at the time of writing it seems that it'll probably be limited to integers and strings. 
+   There are four main tables that are covered in the db_tables file. I originally planned on there possibly being more data_enum_types, but at the time of writing it seems that it'll probably be limited to integers and strings. 
         Because of this and the string fields being a bust, I have thought about redesigning completely.
         However, I've left the design as is, because, although it could be a little better, it works and could still be possibly useful in expanding certain tables.
         The file state_info_import is include to populate the state_info table.
