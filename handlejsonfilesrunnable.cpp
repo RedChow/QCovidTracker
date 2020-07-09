@@ -108,14 +108,14 @@ void HandleJsonFilesRunnable::run() {
     for (start = beginning; start < end; start++) {
         QFile jsonFile(jsonDirectory + jsonFileList[start]);
         jsonFile.open(QFile::ReadOnly);
+        if (!jsonFile.isOpen()) {
+            continue;
+        }
         json = QJsonDocument().fromJson(jsonFile.readAll()).object();
         if (!json["error"].isNull()) {
             if (json["error"].toBool()) {
                 continue;
             }
-        }
-        if (!jsonFile.isOpen()) {
-            continue;
         }
         stateId = json["stateId"].toInt();
         d_date = QDate::fromString(QString::number(json["date"].toInt()), "yyyyMMdd");
@@ -126,7 +126,6 @@ void HandleJsonFilesRunnable::run() {
             data_type_enum_id = 1;
             jsonMappingsHashIterator = jsonMappingsHash.find(key);
             if (jsonMappingsHashIterator == jsonMappingsHash.end()) {
-                qDebug() << "key not found " << key;
                 if (!json.value(key).isString()) {
                     data_type_enum_id = 2;
                 }

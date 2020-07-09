@@ -30,32 +30,41 @@ GetCovidInfo::GetCovidInfo()
 void GetCovidInfo::getMissingData() {
     dbi = new DatabaseInterface("GetCovidInfo:MissingDataEdition");
     QSqlDatabase mdb = dbi->getDatabase();
-    QSqlQuery query(mdb);
-    QDate iterDate = QDate(2020, 3, 1);
-    while (iterDate < QDate::currentDate()) {
-        query.prepare("SELECT DISTINCT(state_info_id), state_abbreviation FROM state_info WHERE "
-                        "state_info_id NOT IN ("
-                        "SELECT state_info_id FROM covid_history "
-                        "WHERE covid_history_date = :chd)");
-        query.bindValue(":chd", iterDate.toString("yyyy-MM-dd"));
-        query.exec();
-        while (query.next()) {
-            if (!query.value(0).isNull() && !query.value(1).isNull()) {
-                stateInfoVector.emplace_back(query.value(1).toString(), query.value(0).toInt(), iterDate);
-            }
-        }
-        iterDate = iterDate.addDays(1);
+    QSqlQuery covidProjectDS(mdb);
+    covidProjectDS.prepare("SELECT data_source_id FROM data_source WHERE data_source_name=:ctp");
+    covidProjectDS.bindValue(":ctp", "covid_tracking_project");
+    covidProjectDS.exec();
+    if (!covidProjectDS.next()) {
+        return;
     }
-    //now get the last three days; sometimes the data is updated a day or two late
-    iterDate = QDate::currentDate().addDays(-3);
-    query.exec("SELECT state_info_id, state_abbreviation FROM state_info");
+    int ctp_id = covidProjectDS.value(0).toInt();
+
+    QSqlQuery query(mdb);
+    query.prepare("SELECT a.state_info_id, b.m, a.state_abbreviation FROM "
+        "(SELECT state_info_id, state_abbreviation FROM state_info WHERE data_source_id = :ctid) AS a "
+        "FULL OUTER JOIN "
+        "(SELECT state_info_id, MAX(covid_history_date) AS m "
+        "FROM covid_history "
+        "GROUP BY state_info_id) AS b "
+        "ON a.state_info_id = b.state_info_id ");
+    query.bindValue(":ctid", ctp_id);
+    QDate iterDate = QDate(2020, 3, 1);
+    QDate threeDaysAgo = QDate::currentDate().addDays(-3);
+    query.exec();
     while (query.next()) {
-        iterDate = QDate::currentDate().addDays(-3);
+        iterDate = QDate(2020, 3, 1);
+        if (!query.value(1).isNull()) {
+            iterDate = query.value(1).toDate();
+        }
+        if (iterDate > threeDaysAgo) {
+            iterDate = threeDaysAgo;
+        }
         while (iterDate < QDate::currentDate()) {
-            stateInfoVector.emplace_back(query.value(1).toString(), query.value(0).toInt(), iterDate);
+            stateInfoVector.emplace_back(query.value(2).toString(), query.value(0).toInt(), iterDate);
             iterDate = iterDate.addDays(1);
         }
     }
+
     emit stateInfoVectorsReady(stateInfoVector);
     emit workFinished();
 }
