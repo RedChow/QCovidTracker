@@ -51,8 +51,9 @@
         <h3>Data Management</h3>
         Besides getting the JSON files from http://covidtracking.com, I plan on adding custom methods for entering data so that information from city, county, country, parish, or other can be added and graphed.
         I also plan on creating a UI to manually depcrate fields; this will cease storing information for those particular JSON fields.
+	<i>Update 2020-07-8</i> Have several dialogs, custom QItemDelegates and QAbstractTableModels, and database changes in the works.
         <h3>Other</h3>
-        There are many TODO comments throughout. One in particular is in handlejsonfilesrunnable.cpp, in which several pieces of code could be refactored for better performance and readability.
+        There are many TODO comments throughout. One in particular is in handlejsonfilesrunnable.cpp, in which several pieces of code could be refactored for better performance and readability. <i>Update 2020-07-08: Made a better SQL statement for getting info from the Covid Tracking Project. </i>
         Would also like to add more comments to the "Get Data" tab that tells the user more about the process that is on-going.
         In the same vein, would also like to add logging into the program.
    <h2>Known Issues</h2>
