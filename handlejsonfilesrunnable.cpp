@@ -77,20 +77,33 @@ void HandleJsonFilesRunnable::run() {
     int stateId{-1};
     QSqlQuery query(db());
     QSqlQuery insertQuery(db());
+    //get covid_tracking_project json keys
+    QSqlQuery covidProjectDS(db());
+    covidProjectDS.prepare("SELECT data_source_id FROM data_source WHERE data_source_name=:ctp");
+    covidProjectDS.bindValue(":ctp", "covid_tracking_project");
+    covidProjectDS.exec();
+    if (!covidProjectDS.next()) {
+        return;
+    }
+    int ctp_id = covidProjectDS.value(0).toInt();
+
     int data_type_enum_id{1};
     int json_mapping_id{-1};
     QDate d_date;
     QHash<QString, QVector<int>> jsonMappingsHash;
     QHash<QString, QVector<int>>::iterator jsonMappingsHashIterator;
-    query.exec("SELECT json_key, json_mappings_id, data_type_enum_id FROM json_mappings");
+    query.prepare("SELECT json_key, json_mappings_id, data_type_enum_id FROM json_mappings WHERE data_source_id=:dsi");
+    query.bindValue(":dsi", ctp_id);
+    query.exec();
     while (query.next()) {
         QVector<int> qVector;
         qVector.push_back(query.value(1).toInt());
         qVector.push_back(query.value(2).toInt());
         jsonMappingsHash.insert(query.value(0).toString(), qVector);
     }
-    query.prepare("SELECT json_key FROM json_mappings WHERE deprecated=:dep");
+    query.prepare("SELECT json_key FROM json_mappings WHERE deprecated=:dep AND data_source_id=:dsi");
     query.bindValue(":dep", 1);
+    query.bindValue(":dsi", ctp_id);
     query.exec();
     QStringList deprecated;
     while (query.next()) {
@@ -111,6 +124,7 @@ void HandleJsonFilesRunnable::run() {
         if (!jsonFile.isOpen()) {
             continue;
         }
+
         json = QJsonDocument().fromJson(jsonFile.readAll()).object();
         if (!json["error"].isNull()) {
             if (json["error"].toBool()) {
@@ -129,16 +143,18 @@ void HandleJsonFilesRunnable::run() {
                 if (!json.value(key).isString()) {
                     data_type_enum_id = 2;
                 }
-                insertQuery.prepare("INSERT INTO json_mappings (json_key, data_type_enum_id) VALUES (:jk, :dtei) RETURNING json_mappings_id;");
+                insertQuery.prepare("INSERT INTO json_mappings (json_key, data_type_enum_id, data_source_id) VALUES (:jk, :dtei, :dsi) RETURNING json_mappings_id;");
                 insertQuery.bindValue(":jk", key);
                 insertQuery.bindValue(":dtei", data_type_enum_id);
+                insertQuery.bindValue(":dsi", ctp_id);
                 insertQuery.exec();
                 if(insertQuery.next()) {
                     json_mapping_id = insertQuery.value(0).toInt();
                 }
                 else {
-                    query.prepare("SELECT json_mappings_id, data_type_enum_id FROM json_mappings WHERE json_key=:jk");
+                    query.prepare("SELECT json_mappings_id, data_type_enum_id FROM json_mappings WHERE json_key=:jk AND data_source_id=:dsi");
                     query.bindValue(":jk", key);
+                    query.bindValue(":dsi", ctp_id);
                     query.exec();
                     query.next();
                     json_mapping_id = query.value(0).toInt();

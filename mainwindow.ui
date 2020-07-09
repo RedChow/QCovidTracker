@@ -171,12 +171,36 @@
     </property>
     <addaction name="actionDB_Setup"/>
    </widget>
+   <widget class="QMenu" name="menuData">
+    <property name="title">
+     <string>Edit Data</string>
+    </property>
+    <addaction name="actionEdit_JSON_Fields"/>
+    <addaction name="actionEdit_History_Data"/>
+    <addaction name="actionEdit_State_Info"/>
+   </widget>
+   <addaction name="menuData"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionDB_Setup">
    <property name="text">
     <string>DB Setup</string>
+   </property>
+  </action>
+  <action name="actionEdit_JSON_Fields">
+   <property name="text">
+    <string>JSON/History Fields</string>
+   </property>
+  </action>
+  <action name="actionEdit_History_Data">
+   <property name="text">
+    <string>History Data</string>
+   </property>
+  </action>
+  <action name="actionEdit_State_Info">
+   <property name="text">
+    <string>State Info</string>
    </property>
   </action>
  </widget>
