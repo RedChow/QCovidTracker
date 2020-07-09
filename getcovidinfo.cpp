@@ -64,7 +64,6 @@ void GetCovidInfo::getMissingData() {
             iterDate = iterDate.addDays(1);
         }
     }
-
     emit stateInfoVectorsReady(stateInfoVector);
     emit workFinished();
 }
