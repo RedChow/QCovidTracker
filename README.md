@@ -27,6 +27,9 @@
   
   ![Alt text](/screenshots/AZ_tracing.png?raw=true "Tracing")
   Right-clicking will be up a context menu in which the user can select/deselect a "Tracing" option.
+
+  ![Alt_text](/screenshots/json_field_editor.png?raw=true "JSON/History editor")
+  JSON and History field editor. Set fields to deprecated if no longer want to keep history for that field. There is not delete option (yet) since the program will automatically add in fields it parses from the Covid Tracking Project.
     
     
    There also exist options for zooming in and out using the mouse, using the arrow keys, and by using A, W, S, and D keys (not case-sensitive).
