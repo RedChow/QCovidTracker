@@ -6,6 +6,10 @@ DataEditorDialog::DataEditorDialog(QWidget *parent) :
     ui(new Ui::DataEditorDialog)
 {
     ui->setupUi(this);
+    //dataEditorItemDelegate = new DataEditorItemDelegate(this);
+
+    dataEditorTableModel = new DataEditorTableModel(this);
+    ui->tableViewDataEditor->setModel(dataEditorTableModel);
 }
 
 DataEditorDialog::~DataEditorDialog()
