@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>TableEditorDialog</class>
- <widget name="TableEditorDialog" class="QDialog">
+ <widget class="QDialog" name="TableEditorDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,8 +11,65 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Edit Table</string>
   </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Choose a table:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBoxTable"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QTableView" name="tableViewTable">
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+     <attribute name="horizontalHeaderStretchLastSection">
+      <bool>true</bool>
+     </attribute>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="pushButtonCommit">
+       <property name="text">
+        <string>Commit</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonAddNewRow">
+       <property name="text">
+        <string>Add New Row</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

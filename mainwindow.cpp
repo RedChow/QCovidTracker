@@ -2,8 +2,8 @@
  * Copyright (C) 2020 brian DOT l DOT miller DOT ttu AT gmail DOT com
  * This file is part of QCovidTracker.
  *
- * QThis program comes with ABSOLUTELY NO WARRANTY
- * CovidTracker is free software: you can redistribute it and/or modify
+ * This program comes with ABSOLUTELY NO WARRANTY
+ * QCovidTracker is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -59,6 +59,10 @@ MainWindow::MainWindow(QWidget *parent)
     plotModel = new PlotModel();
     ui->tableViewPlots->setModel(plotModel);
 
+    //Menu Actions
+    connect(ui->actionEdit_State_Info, &QAction::triggered, this, &MainWindow::openStateInfoEditor);
+    connect(ui->actionEdit_JSON_Fields, &QAction::triggered, this, &MainWindow::openJSONEditor);
+    connect(ui->actionEdit_History_Data, &QAction::triggered, this, &MainWindow::openDataEditor);
     //
     this->grabGesture(Qt::PanGesture);
     this->grabGesture(Qt::PinchGesture);
@@ -301,6 +305,21 @@ void MainWindow::statusBarMessageDone() {
     filesToDownload = 0;
     countFiles = 0;
     disconnect(ui->statusbar, &QStatusBar::messageChanged, this, &MainWindow::statusBarMessageDone);
+}
+
+void MainWindow::openStateInfoEditor() {
+    tableEditorDialog = new TableEditorDialog(this);
+    tableEditorDialog->show();
+}
+
+void MainWindow::openJSONEditor() {
+    jsonEditorDialog = new JSONMappingsEditorDialog(this);
+    jsonEditorDialog->show();
+}
+
+void MainWindow::openDataEditor() {
+    dataEditorDialog = new DataEditorDialog(this);
+    dataEditorDialog->show();
 }
 
 void MainWindow::loadSettings() {

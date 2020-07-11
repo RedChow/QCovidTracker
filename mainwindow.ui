@@ -200,7 +200,7 @@
   </action>
   <action name="actionEdit_State_Info">
    <property name="text">
-    <string>State Info</string>
+    <string>State Info &amp; Data Source</string>
    </property>
   </action>
  </widget>

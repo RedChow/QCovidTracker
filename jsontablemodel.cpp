@@ -1,5 +1,25 @@
+/*
+ * Copyright (C) 2020 brian DOT l DOT miller DOT ttu AT gmail DOT com
+ * This file is part of QCovidTracker.
+ *
+ * This program comes with ABSOLUTELY NO WARRANTY
+ * QCovidTracker is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * QCovidTracker is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with QCovidTracker.  If not, see <https://www.gnu.org/licenses/.
+ */
+
 #include "jsontablemodel.h"
 #include <QDebug>
+#include <QSqlError>
 
 JSONTableModel::JSONTableModel(QObject *parent) :
     QAbstractTableModel(parent)
@@ -39,6 +59,25 @@ void JSONTableModel::populateData() {
          jsonStructVector.emplace_back(query.value(0).toInt(), query.value(1).toString(), query.value(2).toInt(), query.value(3).toInt(), query.value(4).toInt());
     }
     endResetModel();
+}
+
+bool JSONTableModel::insertRows(int row, int count, const QModelIndex &parent) {
+    beginInsertRows(parent, row, row+count);
+    QSqlQuery query = QSqlQuery(mdb);
+    query.prepare("INSERT INTO json_mappings (json_key, deprecated) "
+                  "VALUES (:jk, :d) RETURNING json_mappings_id;");
+    query.bindValue(":jk", "");
+    query.bindValue(":d", 0);
+    query.exec();
+    if (query.next()) {
+        int json_mappings_id = query.value(0).toInt();
+        jsonStructVector.emplace_back(json_mappings_id, "", 1, 0, 2);
+    }
+    else {
+        return false; //failed to get json_mappings_id
+    }
+    endInsertRows();
+    return true;
 }
 
 int JSONTableModel::rowCount(const QModelIndex &parent) const {
@@ -114,6 +153,51 @@ QVariant JSONTableModel::data(const QModelIndex &index, int role ) const {
     return QVariant();
 }
 
+
+void JSONTableModel::sort(int column, Qt::SortOrder order) {
+    //lambda sorting functions, seems verbose...
+    //recall that json_mappings_id < 0 when it's the date column
+    auto ascendingOrder = [column] (const JSONTableStruct left, const JSONTableStruct right) -> bool
+    {
+        if (column == 0) {
+            return left.json_mapping_id < right.json_mapping_id;
+        }
+        else if (column == 1) {
+            return left.data_type_enum_id < right.data_type_enum_id;
+        }
+        else if (column == 2) {
+            return left.deprecated < right.deprecated;
+        }
+        else  {
+            return left.data_source_id < right.data_source_id;
+        }
+    };
+
+    auto descendingOrder = [column] (const JSONTableStruct left, const JSONTableStruct right) -> bool
+    {
+        if (column == 0) {
+            return left.json_mapping_id > right.json_mapping_id;
+        }
+        else if (column == 1) {
+            return left.data_type_enum_id > right.data_type_enum_id;
+        }
+        else if (column == 2) {
+            return left.deprecated > right.deprecated;
+        }
+        else  {
+            return left.data_source_id > right.data_source_id;
+        }
+    };
+    emit layoutAboutToBeChanged();
+    if (order == Qt::DescendingOrder) {
+        std::sort(jsonStructVector.begin(), jsonStructVector.end(), ascendingOrder);
+    }
+    else {
+        std::sort(jsonStructVector.begin(), jsonStructVector.end(), descendingOrder);
+    }
+    emit layoutChanged();
+}
+
 bool JSONTableModel::setData(const QModelIndex &index, const QVariant &value, int role) {
     Q_UNUSED(role);
     if (index.column() == 0) {
@@ -151,8 +235,8 @@ bool JSONTableModel::setData(const QModelIndex &index, const QVariant &value, in
     return false;
 }
 
+
 Qt::ItemFlags JSONTableModel::flags(const QModelIndex &index) const {
-    //qDebug() << index.row() << index.column();
     Qt::ItemFlags flags = QAbstractTableModel::flags(index);
     flags |= Qt::ItemIsEditable;
     return flags;

@@ -18,29 +18,46 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     customlineseries.cpp \
     databaseinterface.cpp \
+    dataeditordialog.cpp \
+    dataeditoritemdelegate.cpp \
+    dataeditormodel.cpp \
     getcovidinfo.cpp \
     handlejsonfilesrunnable.cpp \
     jsonfileshandler.cpp \
+    jsonitemdelegate.cpp \
+    jsonmappingseditordialog.cpp \
+    jsontablemodel.cpp \
     main.cpp \
     mainchart.cpp \
     mainchartview.cpp \
     mainwindow.cpp \
-    plotmodel.cpp
+    plotmodel.cpp \
+    tableeditordialog.cpp
 
 HEADERS += \
     customlineseries.h \
     databaseinterface.h \
+    dataeditordialog.h \
+    dataeditoritemdelegate.h \
+    dataeditormodel.h \
     getcovidinfo.h \
     handlejsonfilesrunnable.h \
     jsonfileshandler.h \
+    jsonitemdelegate.h \
+    jsonmappingseditordialog.h \
+    jsontablemodel.h \
     mainchart.h \
     mainchartview.h \
     mainwindow.h \
     plotmodel.h \
-    statestruct.h
+    statestruct.h \
+    tableeditordialog.h
 
 FORMS += \
-    mainwindow.ui
+    dataeditordialog.ui \
+    jsonmappingseditordialog.ui \
+    mainwindow.ui \
+    tableeditordialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

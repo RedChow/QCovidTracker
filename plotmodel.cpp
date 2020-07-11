@@ -2,8 +2,8 @@
  * Copyright (C) 2020 brian DOT l DOT miller DOT ttu AT gmail DOT com
  * This file is part of QCovidTracker.
  *
- * QThis program comes with ABSOLUTELY NO WARRANTY
- * CovidTracker is free software: you can redistribute it and/or modify
+ * This program comes with ABSOLUTELY NO WARRANTY
+ * QCovidTracker is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -82,10 +82,20 @@ void PlotModel::populateData() {
     QVector<int> positiveVector(megaQuery.size());
     QVector<int> negativeVector(megaQuery.size());
     int vectorPosition{0};
+    int pos{0};
+    int neg{0};
     while (megaQuery.next()) {
         tableQDates.push_back(megaQuery.value(0).toDate());
-        positiveVector[vectorPosition] = megaQuery.value(1).toInt();
-        negativeVector[vectorPosition] = megaQuery.value(2).toInt() + megaQuery.value(1).toInt();
+        pos = megaQuery.value(1).toInt();
+        if (megaQuery.isNull(1)) {
+             pos = 0;
+        }
+        neg = megaQuery.value(2).toInt();
+        if (megaQuery.isNull(2)) {
+            neg = 0;
+        }
+        positiveVector[vectorPosition] = pos;
+        negativeVector[vectorPosition] = pos + neg;
         vectorPosition++;
     }
 
