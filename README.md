@@ -31,7 +31,8 @@
   ![Alt_text](/screenshots/json_field_editor.png?raw=true "JSON/History editor")
   JSON and History field editor. Set fields to deprecated if no longer want to keep history for that field. There is not delete option (yet) since the program will automatically add in fields it parses from the Covid Tracking Project.
     
-    
+  ![Alt_text](/screenshots/phoenix_ax_manually_add_data.png?raw=true "Manually Add Data")    
+  Added table model and item delegates for adding manual sources. 
    There also exist options for zooming in and out using the mouse, using the arrow keys, and by using A, W, S, and D keys (not case-sensitive).
     
    <h2>Environment</h2>
@@ -54,6 +55,7 @@
         <h3>Data Management</h3>
         Besides getting the JSON files from http://covidtracking.com, I plan on adding custom methods for entering data so that information from city, county, country, parish, or other can be added and graphed.
         I also plan on creating a UI to manually depcrate fields; this will cease storing information for those particular JSON fields.
+	<i>Update 2020-07-11: Added table models and item delegates for adding own manual data sources. No more spreadsheets for me!</i>
 	<br>
 	<i>Update 2020-07-08: Have several dialogs, custom QItemDelegates and QAbstractTableModels, and database changes in the works.</i>
         <h3>Other</h3>
@@ -63,4 +65,12 @@
 	<br>
         Would also like to add more comments to the "Get Data" tab that tells the user more about the process that is on-going.
         In the same vein, would also like to add logging into the program.
+	<br>
+	Code needs clean up in several areas, namely need to add an abstraction layer between table models and database interface.  This will make it easier in the future in many scenarios. For example,  if database needs changing (different database usually means revising SQL statements), or if we choose to store data in flat text files, spreadsheets, etc, we don't have to hunt down all the SQL, change or rewrite, etc.
+	<br>
+	Need to add comments to many places in the code base.
+	<br>
+	Need to add consistency in variable naming and point usage.
+	<br>
+	Comb through code for memory leaks.
    <h2>Known Issues</h2>
