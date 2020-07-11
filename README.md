@@ -60,18 +60,17 @@
 	<br>
 	<i>Update 2020-07-08: Have several dialogs, custom QItemDelegates and QAbstractTableModels, and database changes in the works.</i>
         <h3>Other</h3>
-        There are many TODO comments throughout. One in particular is in handlejsonfilesrunnable.cpp, in which several pieces of code could be refactored for better performance and readability. 
-	<br>
-	<i>Update 2020-07-08: Made a better SQL statement for getting info from the Covid Tracking Project. </i>
-	<br>
-        Would also like to add more comments to the "Get Data" tab that tells the user more about the process that is on-going.
-        In the same vein, would also like to add logging into the program.
-	<br>
-	Code needs clean up in several areas, namely need to add an abstraction layer between table models and database interface.  This will make it easier in the future in many scenarios. For example,  if database needs changing (different database usually means revising SQL statements), or if we choose to store data in flat text files, spreadsheets, etc, we don't have to hunt down all the SQL, change or rewrite, etc.
-	<br>
-	Need to add comments to many places in the code base.
-	<br>
-	Need to add consistency in variable naming and point usage.
-	<br>
-	Comb through code for memory leaks.
+        There are many TODO comments throughout.
+	<ul>
+		<li> One in particular is in handlejsonfilesrunnable.cpp, in which several pieces of code could be refactored for better performance and readability. </li>
+		<ul>
+			<li><i>Update 2020-07-08: Made a better SQL statement for getting info from the Covid Tracking Project. </i></li>
+		</ul>
+        	<li>Would also like to add more comments to the "Get Data" tab that tells the user more about the process that is on-going.</li>
+        	<li>In the same vein, would also like to add logging into the program.</li>
+		<li>Code needs clean up in several areas, namely need to add an abstraction layer between table models and database interface.  This will make it easier in the future in many scenarios. For example,  if database needs changing (different database usually means revising SQL statements), or if we choose to store data in flat text files, spreadsheets, etc, we don't have to hunt down all the SQL, change or rewrite, etc.</li>
+		<li>Need to add comments to many places in the code base.</li>
+		<li>Need to add consistency in variable naming and point usage.</li>
+		<li>Comb through code for memory leaks.</li>
+	</ul>
    <h2>Known Issues</h2>
