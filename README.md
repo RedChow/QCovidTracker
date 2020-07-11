@@ -51,14 +51,20 @@
         There are many plans for filling this program out to make it more complete and a better tool.
         I will have to add in these plans as I find time.
         <h3>Graphing</h3>
-        Will probably add the ability that when the user clicks on a graph on the tab "Positive/Tests," the line stays highlighted.
-        I will also add more graphs to "Other Plots," such as some stacked bar charts, bar and line graphs, and many others.
+	<ul>
+        	<li>Will probably add the ability that when the user clicks on a graph on the tab "Positive/Tests," the line stays highlighted.
+        I will also add more graphs to "Other Plots," such as some stacked bar charts, bar and line graphs, and many others.</li>
+	</ul>
         <h3>Data Management</h3>
-        Besides getting the JSON files from http://covidtracking.com, I plan on adding custom methods for entering data so that information from city, county, country, parish, or other can be added and graphed.
-        I also plan on creating a UI to manually depcrate fields; this will cease storing information for those particular JSON fields.
-	<i>Update 2020-07-11: Added table models and item delegates for adding own manual data sources. No more spreadsheets for me!</i>
-	<br>
-	<i>Update 2020-07-08: Have several dialogs, custom QItemDelegates and QAbstractTableModels, and database changes in the works.</i>
+	<ul>
+        	<li>Besides getting the JSON files from http://covidtracking.com, I plan on adding custom methods for entering data so that information from city, county, country, parish, or other can be added and graphed.</li>
+		<ul>
+			<li><i>Update 2020-07-11: Added table models and item delegates for adding own manual data sources. No more spreadsheets for me!</i><li>
+		</ul>
+        	<li>I also plan on creating a UI to manually depcrate fields; this will cease storing information for those particular JSON fields.</li>
+		<ul>
+			<li><i>Update 2020-07-08: Have several dialogs, custom QItemDelegates and QAbstractTableModels, and database changes in the works.</i></li>
+		</ul>
         <h3>Other</h3>
         There are many TODO comments throughout.
 	<ul>
