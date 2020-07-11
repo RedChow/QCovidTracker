@@ -65,6 +65,7 @@
 		<ul>
 			<li><i>Update 2020-07-08: Have several dialogs, custom QItemDelegates and QAbstractTableModels, and database changes in the works.</i></li>
 		</ul>
+	</ul>
         <h3>Other</h3>
         There are many TODO comments throughout.
 	<ul>
