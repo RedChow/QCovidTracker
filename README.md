@@ -32,7 +32,8 @@
   JSON and History field editor. Set fields to deprecated if no longer want to keep history for that field. There is not delete option (yet) since the program will automatically add in fields it parses from the Covid Tracking Project.
     
   ![Alt_text](/screenshots/phoenix_ax_manually_add_data.png?raw=true "Manually Add Data")    
-  Added table model and item delegates for adding manual sources. 
+  Added table model and item delegates for adding manual sources. Note that in the above screenshot, the data column fields are not from the Covid Tracking Project, but custom data fields.
+  <br>
    There also exist options for zooming in and out using the mouse, using the arrow keys, and by using A, W, S, and D keys (not case-sensitive).
     
    <h2>Environment</h2>
