@@ -59,7 +59,7 @@
 	<ul>
         	<li>Besides getting the JSON files from http://covidtracking.com, I plan on adding custom methods for entering data so that information from city, county, country, parish, or other can be added and graphed.</li>
 		<ul>
-			<li><i>Update 2020-07-11: Added table models and item delegates for adding own manual data sources. No more spreadsheets for me!</i><li>
+			<li><i>Update 2020-07-11: Added table models and item delegates for adding own manual data sources. No more spreadsheets for me!</i></li>
 		</ul>
         	<li>I also plan on creating a UI to manually depcrate fields; this will cease storing information for those particular JSON fields.</li>
 		<ul>
