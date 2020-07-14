@@ -109,15 +109,15 @@ void HandleJsonFilesRunnable::run() {
     while (query.next()) {
         deprecated << query.value(0).toString();
     }
-    QVariantList jsonKeyVL;
-    QVariantList dataEnumVL;
-    QVariantList stateInfoIdVL;
-    QVariantList stringValueVL;
-    QVariantList integerValueVL;
-    QVariantList dateValueVL;
-    QDate batchDate = QDate::currentDate().addDays(-3);
-    QSqlQuery batchQuery(db());
-    batchQuery.prepare("INSERT INTO covid_history (json_mappings_id, state_info_id, string_value, integer_value, covid_history_date) VALUES (?, ?, ?, ?, ?)");
+    //QDate batchDate = QDate::currentDate().addDays(-3);
+    /*
+     * 	TODO:
+     * 		Add INSERT INTO covid_history (json_mappings_id, state_info_id, string_value, integer_value, covid_history_date) VALUES
+     * 			(jmi_0, sii_0, sv_0, iv_0, chd_0),
+     * 			(jmi_1, sii_1, sv_1, iv_1, chd_1),
+     * 			...
+     * 			(smi_n, sii_n, sv_n, iv_n, chd_n)
+     */
     for (start = beginning; start < end; start++) {
         QFile jsonFile(jsonDirectory + jsonFileList[start]);
         jsonFile.open(QFile::ReadOnly);
@@ -170,7 +170,6 @@ void HandleJsonFilesRunnable::run() {
                 data_type_enum_id = jsonMappingsHash[key][1];
             }
             if (json_mapping_id > -1) {
-                if (d_date > batchDate) {
                     insertQuery.prepare("INSERT INTO covid_history (json_mappings_id, state_info_id, string_value, integer_value, covid_history_date) VALUES (:jmi, :sii, :sv, :iv, :chd)");
                     insertQuery.bindValue(":jmi", json_mapping_id);
                     insertQuery.bindValue(":sii", stateId);
@@ -201,35 +200,14 @@ void HandleJsonFilesRunnable::run() {
                         updateQuery.exec();
                     }
                 }
-                else {
-                    jsonKeyVL << json_mapping_id;
-                    stateInfoIdVL << stateId;
-                    dateValueVL << d_date.toString("yyyy-MM-dd");
-                    if (data_type_enum_id == 2) {
-                        stringValueVL << QVariant(QVariant::String);
-                        integerValueVL << json[key].toInt();
-                    }
-                    else {
-                        stringValueVL << json[key].toString();
-                        integerValueVL << QVariant(QVariant::Int);
-                    }
-                }
             }
-        }
 
-        if (!jsonFile.rename(jsonDirectory + "process_files/" + jsonFileList[start])) {
-            QFile tempFile(jsonDirectory + "process_files/" + jsonFileList[start]);
-            tempFile.remove();
-            jsonFile.rename(jsonDirectory + "process_files/" + jsonFileList[start]);
-            //TODO: add check for removing jsonFile
-        }
-        emit sendStatusMessage(jsonFileList[start]);
+            if (!jsonFile.rename(jsonDirectory + "process_files/" + jsonFileList[start])) {
+                QFile tempFile(jsonDirectory + "process_files/" + jsonFileList[start]);
+                tempFile.remove();
+                jsonFile.rename(jsonDirectory + "process_files/" + jsonFileList[start]);
+                //TODO: add check for removing jsonFile
+            }
+            emit sendStatusMessage(jsonFileList[start]);
     }
-
-    batchQuery.addBindValue(jsonKeyVL);
-    batchQuery.addBindValue(stateInfoIdVL);
-    batchQuery.addBindValue(stringValueVL);
-    batchQuery.addBindValue(integerValueVL);
-    batchQuery.addBindValue(dateValueVL);
-    batchQuery.execBatch();
 }

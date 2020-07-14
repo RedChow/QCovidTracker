@@ -27,9 +27,13 @@ GetCovidInfo::GetCovidInfo()
 
 }
 
+void GetCovidInfo::setDatabase(QSqlDatabase p_mdb) {
+    mdb = p_mdb;
+}
+
 void GetCovidInfo::getMissingData() {
-    dbi = new DatabaseInterface("GetCovidInfo:MissingDataEdition");
-    QSqlDatabase mdb = dbi->getDatabase();
+    //dbi = new DatabaseInterface("GetCovidInfo:MissingDataEdition");
+    //QSqlDatabase mdb = dbi->getDatabase();
     QSqlQuery covidProjectDS(mdb);
     covidProjectDS.prepare("SELECT data_source_id FROM data_source WHERE data_source_name=:ctp");
     covidProjectDS.bindValue(":ctp", "covid_tracking_project");
@@ -42,7 +46,7 @@ void GetCovidInfo::getMissingData() {
     QSqlQuery query(mdb);
     query.prepare("SELECT a.state_info_id, b.m, a.state_abbreviation FROM "
         "(SELECT state_info_id, state_abbreviation FROM state_info WHERE data_source_id = :ctid) AS a "
-        "FULL OUTER JOIN "
+        "LEFT JOIN "
         "(SELECT state_info_id, MAX(covid_history_date) AS m "
         "FROM covid_history "
         "GROUP BY state_info_id) AS b "
