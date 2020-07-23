@@ -13,11 +13,17 @@
     It defaults to show the differences between consecutive days, as this proves to typically more useful than the total accumulated.
     This is because differences show how fast outbreaks are happening.
     These graphs also allow the user to see how differences are stacking up against test numbers.
+    Positivity rates have also been added to the Positive/Tests tab.
+    The plot points are calculate by dividing the number of new positive cases by the number of new positive and negative tests.
+    Positivity rate plot can be turned off and on.
     <h3>Screenshots</h3>
     ![Alt text](/screenshots/getting_data.png?raw=true "Getting Data")
     
    ![Alt text](/screenshots/AZ_positive_tests.png?raw=true "AZ Positive/Tests")
    The screenshot shows default graphs.
+
+  ![Alt_text](/screenshots/AZ_positivity_rate.png?raw=true "Manually Add Data")    
+  Positivity rate can be turned off and on. The above graph shows the positivity rate for AZ.
    
   ![Alt text](/screenshots/AZ_raw_data.png?raw=true "Raw Data")
   Graphs on "Positive/Tests" tab are constructed from the raw data table. The raw data table also shows slope calculations over the moving averages.
@@ -35,7 +41,22 @@
   Added table model and item delegates for adding manual sources. Note that in the above screenshot, the data column fields are not from the Covid Tracking Project, but custom data fields.
   <br>
    There also exist options for zooming in and out using the mouse, using the arrow keys, and by using A, W, S, and D keys (not case-sensitive).
+  <br>
+  ![Alt_text](/screenshots/tx_custom_plot_config.png?raw=true "TX Custom Plots")    
+  The above screen shot shows configuring custom plots.  Any state, whether it's from Covid Tracking Project or manually added can have custom plots made and saved. 
+  This screen shot shows a custom made plot showing the hospitalizedCurrently, hospitalizedCurrently moving average, and deaths for the state of TX.
+  Any field that has data can be selected and shown. The options for graphs are either line or bar, although there are plans to eventually added a stacked bar chart and possibly box and whisker plots.
+  Style of the graph can be configured as well as the color of the graphs.  The Y-Axis ID allows plots to be shown on the same set of y-axis values or it's possible to select a different set.
+  The plot below shows this plot.  
+  Note the line and bar graphs are on separate Y-axes.
+  <br>
+![Alt_text](/screenshots/tx_custom_plot.png?raw=true "TX Custom Plots")    
+  <br>
+ ![Alt_text](/screenshots/midland_custom_plot_config.png?raw=true "Midland Custom Plots")     
+  The plot configure above shows a city that is not tracked on the Covid Tracking Project. The data for this entity is manually added. The plot below shows this custom plot.
+![Alt_text](/screenshots/midland_custom_plot.png?raw=true "Midland Custom Plots")     
 
+  
     
    <h2>Environment</h2>
         This was developed on Fedora 31 and openSUSE Tumbleweed using Qt Creator 4.12.3, Qt 5.14.2, and PostgreSQL 12.3.
