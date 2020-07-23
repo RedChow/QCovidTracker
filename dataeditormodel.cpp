@@ -46,13 +46,18 @@ void DataEditorTableModel::populateData(int stateInfoId, int dataSourceId) {
     query.exec();
     QDate date = QDate(1969, 1, 1);
     DataTableStruct *dataTableStruct = new DataTableStruct();
+    //std::unique_ptr<DataTableStruct> dataTableStruct(new DataTableStruct);
+    //std::unique_ptr<std::vector<std::unique_ptr<DataTableStruct>>> list(new std::vector<std::unique_ptr<DataTableStruct>>());
     while (query.next()) {
         if (query.value(0).toDate() > date) {
             //we have gotten to the next date
             if (!dataTableStruct->date.isNull()) {
                 tableData.push_back(dataTableStruct);
+                //tableData.push_back(dataTableStruct);
+                //list->push_back(dataTableStruct);
             }
             dataTableStruct = new DataTableStruct();
+            //std::unique_ptr<DataTableStruct> dataTableStruct(new DataTableStruct);
             date = query.value(0).toDate();
             dataTableStruct->date = date;
         }
@@ -66,12 +71,15 @@ void DataEditorTableModel::populateData(int stateInfoId, int dataSourceId) {
     //The last needs to be inserted
     if (!dataTableStruct->date.isNull()) {
         tableData.push_back(dataTableStruct);
+        //tableData.push_back(move(dataTableStruct));
+        //list->push_back(dataTableStruct);
     }
     endResetModel();
 }
 
 bool DataEditorTableModel::insertRows(int row, int count, const QModelIndex &parent) {
     DataTableStruct *dataTableStruct = new DataTableStruct();
+    //std::unique_ptr<DataTableStruct> dataTableStruct(new DataTableStruct);
     dataTableStruct->date = QDate(1970, 1, 1);
     for (auto headerIterator = tableHeaders.begin(); headerIterator != tableHeaders.end(); headerIterator++) {
         dataTableStruct->data[headerIterator->json_mapping_id] = QVariant(0);
@@ -97,6 +105,7 @@ bool DataEditorTableModel::insertRows(int row, int count, const QModelIndex &par
 }
 
 void DataEditorTableModel::sort(int column, Qt::SortOrder order) {
+    Q_UNUSED(order);
     jsonMappingsId = tableHeaders[column].json_mapping_id;
     //lambda sorting functions, seems verbose...
     //recall that json_mappings_id < 0 when it's the date column
@@ -174,10 +183,24 @@ QVariant DataEditorTableModel::headerData(int section, Qt::Orientation orientati
 
 bool DataEditorTableModel::removeRows(int row, int count, const QModelIndex &parent) {
     beginRemoveRows(parent, row, row+count-1);
+    /*
+     *
     int rowCount;
     for (rowCount = count-1; rowCount >= 0; rowCount--) {
         tableData.remove(rowCount);
     }
+
+    beginRemoveRows(parent, row, row + count - 1);
+    int countLeft = count;
+    while (countLeft--) {
+        const Album& album = *mAlbums->at(row + countLeft);
+        mDb.albumDao.removeAlbum(album.id());
+    }
+    mAlbums->erase(mAlbums->begin() + row,
+                  mAlbums->begin() + row + count);
+    endRemoveRows();
+    */
+    tableData.erase(tableData.begin() + row, tableData.begin() + row + count);
     endRemoveRows();
     return true;
 }

@@ -23,6 +23,10 @@
 #include <QtCharts>
 #include <QChart>
 
+/*
+ *	I had bigger plans for this QChart subclass, and they're on hold for a while
+ */
+
 class MainChart : public QChart
 {
     Q_OBJECT

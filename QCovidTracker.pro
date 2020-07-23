@@ -16,6 +16,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    algorithms.cpp \
+    barchartsview.cpp \
+    chartbuilder.cpp \
     customlineseries.cpp \
     databaseinterface.cpp \
     dataeditordialog.cpp \
@@ -31,10 +34,15 @@ SOURCES += \
     mainchart.cpp \
     mainchartview.cpp \
     mainwindow.cpp \
+    plotconfigform.cpp \
     plotmodel.cpp \
+    plotsconfigdialog.cpp \
     tableeditordialog.cpp
 
 HEADERS += \
+    algorithms.h \
+    barchartsview.h \
+    chartbuilder.h \
     customlineseries.h \
     databaseinterface.h \
     dataeditordialog.h \
@@ -49,7 +57,9 @@ HEADERS += \
     mainchart.h \
     mainchartview.h \
     mainwindow.h \
+    plotconfigform.h \
     plotmodel.h \
+    plotsconfigdialog.h \
     statestruct.h \
     tableeditordialog.h
 
@@ -57,6 +67,8 @@ FORMS += \
     dataeditordialog.ui \
     jsonmappingseditordialog.ui \
     mainwindow.ui \
+    plotconfigform.ui \
+    plotsconfigdialog.ui \
     tableeditordialog.ui
 
 # Default rules for deployment.

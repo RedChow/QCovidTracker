@@ -19,14 +19,58 @@ json_mappings
 		json_key:text (key in the json object from data file we parse)
 		data_type_enum_id: integer (cross-references in data_type_enum)
 		deprecated: integer (0 = false, 1 = true; 1 means it will no longer be stored)
+		data_source_id: integer
 	Constraints:
-		UNIQUE: json_key
+		UNIQUE: json_key, data_source_id
 		PK: json_mappings_id
 state_info
 	Columns:type
 		state_info_id: serial (auto increment)
 		state_abbreviation: text
 		state_name: text
+		data_source_id: integer
 	Constraints:
 		UNIQUE: state_abbreviation, state_name
 		PK: state_info_id
+data_source
+	Columns:type
+		data_source_id: serial (auto increment)
+		data_source_name: text
+	Constraints:
+		PK: data_source_id
+plot_grouping:
+	Column:type
+		plot_grouping_id: serial
+		plot_grouping_name: text
+	Constraints:
+		PK: plot_grouping_id
+plot_plot_grouping_connections:
+	Column:type
+		plot_grouping_id: integer
+		plot_id: integer
+	Constraints:
+		UNIQUE: plot_grouping_id, plot_id
+plot:
+	Columns:type
+		plot_id: serial
+		plot_name: text
+		state_info_id: integer
+		json_mappings_id: integer
+		pen_id: integer --this will probably be removed in the future as plot_id will more than likely be moved to a column in pens
+		show_differences: bool
+		moving_average_days: integer
+		axis_id: integer
+		chartType: integer
+		pen_style: integer
+		pen_color: bigint
+		pen_width: integer
+	Constraints:
+		PK: plot_id
+pens:
+	Columns:type
+		pen_id: serial
+		pen_style: integer
+		pen_color: bigint
+		pen_width: integer
+	Constraints:
+		PK: pen_id

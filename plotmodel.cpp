@@ -85,6 +85,9 @@ void PlotModel::populateData() {
     int pos{0};
     int neg{0};
     while (megaQuery.next()) {
+        if (!megaQuery.value(0).toDate().isValid()) {
+            continue;
+        }
         tableQDates.push_back(megaQuery.value(0).toDate());
         pos = megaQuery.value(1).toInt();
         if (megaQuery.isNull(1)) {
@@ -96,6 +99,7 @@ void PlotModel::populateData() {
         }
         positiveVector[vectorPosition] = pos;
         negativeVector[vectorPosition] = pos + neg;
+        //positivityRate.push_back( (qreal)pos/( (qreal)(pos + neg)) );
         vectorPosition++;
     }
 
@@ -129,7 +133,7 @@ void PlotModel::clearTable() {
 int PlotModel::columnCount(const QModelIndex &parent) const {
     Q_UNUSED(parent);
     //TODO: Add dynamic headers
-    return 13;
+    return 14;
 }
 
 QVariant PlotModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -162,6 +166,8 @@ QVariant PlotModel::headerData(int section, Qt::Orientation orientation, int rol
                 return QString("Slope of Tests");
             case 12:
                 return QString("Slope of Test Mov Avg");
+            case 13:
+                return QString("Positivity Rate");
             default:
                 return QString("Pos Mov Avg");
         }
@@ -176,7 +182,7 @@ QVariant PlotModel::headerData(int section, Qt::Orientation orientation, int rol
  * 7(1)         8                    9
  * tests: positive + negative, negativeDifferences, negativeCumSum, negativeMovingAverage, slopes(?)
  * 13(2)
- * host
+ * positivity rate
 */
 QVariant PlotModel::data(const QModelIndex &index, int role ) const {
     int columnIndex = (index.column()-1)/6;
@@ -186,6 +192,16 @@ QVariant PlotModel::data(const QModelIndex &index, int role ) const {
     }
     if (index.column() == 0) {
         return tableQDates[index.row()];
+    }
+    else if (index.column() == 13) {
+        if (index.row() >= 1) {
+            qreal numerator = (qreal) (tableData[0][index.row()] - tableData[0][index.row()-1]);
+            qreal denominator = (qreal) (tableData[1][index.row()] - tableData[1][index.row()-1]);
+            if (denominator != 0) {
+                return 100*numerator/denominator;
+            }
+        }
+        return 0;
     }
     else if (columnModded == 0) {
         //negative will be vector column 1, but column in table will be 7 (7-1) % 6 = 0

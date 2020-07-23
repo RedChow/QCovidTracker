@@ -16,34 +16,41 @@
  * You should have received a copy of the GNU General Public License
  * along with QCovidTracker.  If not, see <https://www.gnu.org/licenses/.
  */
-#ifndef GETCOVIDINFO_H
-#define GETCOVIDINFO_H
+#ifndef PLOTSCONFIGDIALOG_H
+#define PLOTSCONFIGDIALOG_H
 
-#include <QObject>
+#include <QDialog>
 #include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QThread>
+#include <memory>
 #include <vector>
-#include "databaseinterface.h"
-#include "statestruct.h"
 
+namespace Ui {
+class PlotsConfigDialog;
+}
 
-class GetCovidInfo : public QThread
+class PlotsConfigDialog : public QDialog
 {
     Q_OBJECT
+
 public:
-    GetCovidInfo();
-    std::vector<StateInfo> stateInfoVector;
-    std::vector<StateInfo> stateInfoVectorBatch;
-    void setDatabase(QSqlDatabase p_mdb);
-signals:
-    void stateInfoVectorsReady(std::vector<StateInfo> stateInfo);
-    void workFinished();
-public slots:
-    void getMissingData();
+    explicit PlotsConfigDialog(QSqlDatabase &p_mdb, QWidget *parent = nullptr);
+    ~PlotsConfigDialog();
+    void fillComboBox();
+    void addNewPlotGrouping();
+    void addPlotToGroup();
+    void addWidget(int plotId);
+    void deletePlot();
+    void createComboVectors();
 private:
-    DatabaseInterface *dbi;
-    QSqlDatabase mdb;
+    Ui::PlotsConfigDialog *ui;
+    QSqlDatabase &mdb;
+    //QVector<QPair<QString, int>> stateInfoVector;
+    //QVector<QPair<QString, int>> jsonFieldVector;
+    std::vector<QSharedPointer<QPair<QString, int>>> stateInfoVector;
+    QVector<QSharedPointer<QPair<QString, int>>> jsonFieldVector;
+
+public slots:
+    void populateListWidgetPlots(int currentIndex);
 };
 
-#endif // GETCOVIDINFO_H
+#endif // PLOTSCONFIGDIALOG_H

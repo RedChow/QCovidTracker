@@ -44,6 +44,7 @@ public:
     void clearTable();
     QVector<QVector<int>> tableData;
     QVector<QDate> tableQDates;
+    //QVector<qreal> positivityRate;
     int stateId;
     void setStateId(int p_stateId);
     int days;

@@ -30,7 +30,9 @@ DatabaseInterface::DatabaseInterface(QString p_dbName) :
     mDatabase->setPassword(this->password);
 }
 
-DatabaseInterface::DatabaseInterface(int t) : threadID(t) {
+DatabaseInterface::DatabaseInterface(int t) :
+    threadID(t)
+{
 
 }
 

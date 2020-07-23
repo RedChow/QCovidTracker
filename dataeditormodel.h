@@ -26,6 +26,7 @@
 #include <QComboBox>
 #include <QSortFilterProxyModel>
 #include "databaseinterface.h"
+#include <memory>
 
 struct DataTableStruct {
     QHash<int, QVariant> data;
@@ -72,6 +73,7 @@ public:
     std::vector<DataEditorHeaders> tableHeaders;
     void populateData(int stateInfoId, int dataSourceId);
     QVector<DataTableStruct*> tableData;
+    //std::vector<std::unique_ptr<DataTableStruct>> tableData;
     void clearTable();
     QSqlDatabase lendDatabase();
     int thisStateInfoId;

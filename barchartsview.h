@@ -16,34 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with QCovidTracker.  If not, see <https://www.gnu.org/licenses/.
  */
-#ifndef GETCOVIDINFO_H
-#define GETCOVIDINFO_H
+
+#ifndef BARCHARTSVIEW_H
+#define BARCHARTSVIEW_H
 
 #include <QObject>
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QThread>
-#include <vector>
-#include "databaseinterface.h"
-#include "statestruct.h"
+#include <QtCharts>
+#include <QChartView>
+#include "mainchart.h"
 
+/*
+ * This will eventually become the QChartView for the custom plots.
+ */
 
-class GetCovidInfo : public QThread
+class BarChartsView : public QChartView
 {
     Q_OBJECT
 public:
-    GetCovidInfo();
-    std::vector<StateInfo> stateInfoVector;
-    std::vector<StateInfo> stateInfoVectorBatch;
-    void setDatabase(QSqlDatabase p_mdb);
-signals:
-    void stateInfoVectorsReady(std::vector<StateInfo> stateInfo);
-    void workFinished();
-public slots:
-    void getMissingData();
-private:
-    DatabaseInterface *dbi;
-    QSqlDatabase mdb;
+    BarChartsView();
 };
 
-#endif // GETCOVIDINFO_H
+#endif // BARCHARTSVIEW_H

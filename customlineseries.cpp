@@ -29,6 +29,10 @@ CustomLineSeries::CustomLineSeries()
     connect(this, &QLineSeries::hovered, this, &CustomLineSeries::showHovered);
 }
 
+CustomLineSeries::~CustomLineSeries() {
+
+}
+
 void CustomLineSeries::showHovered(QPointF pointF, bool state) {
     QPen pen = this->pen();
     if (state) {

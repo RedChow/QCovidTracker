@@ -48,7 +48,6 @@ void MainChartView::contextMenuEvent(QContextMenuEvent *event) {
 }
 
 void MainChartView::traceChart() {
-    qDebug() << "I am tracing now";
     tracePlot = true;
 }
 
@@ -156,6 +155,9 @@ void MainChartView::showThatToolTip(QPointF pointF, bool state, QAbstractSeries 
             }
             else if (i == 3) {
                 graphicsTextItemVector.at(i)->setHtml(QString("<div style='background-color:#ffd09a; color:#000000'>	%1 : %2</div>").arg(timestamp.toString("yyyy-MM-dd")).arg(tempY));
+            }
+            else if (i == 4) {
+                 graphicsTextItemVector.at(i)->setHtml(QString("<div style='background-color:#cc3300; color:#000000'>	%1 : %2</div>").arg(timestamp.toString("yyyy-MM-dd")).arg(tempY));
             }
             //The following sets the y coordinate on the QGraphicsTextItem so that they're all visible
             //TODO: This works most of the time, there are a few cases where it doesn't and the items still overlap

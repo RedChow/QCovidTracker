@@ -38,9 +38,12 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     loadSettings();
+    dbi = new DatabaseInterface("MainThreadDb");
+    mdb = dbi->getDatabase();
     fillComboBox();
     connect(ui->pushButtonGetData, &QPushButton::clicked, this, &MainWindow::getData);
     connect(ui->pushButtonPlot, &QPushButton::clicked, this, &MainWindow::plotPositiveTests);
+    connect(ui->pushButtonPlot_2, &QPushButton::clicked, this, &MainWindow::plotPlotGrouping);
 
     readyReadJsonFiles = new QTimer(this);
     connect(readyReadJsonFiles, &QTimer::timeout, this, &MainWindow::jsonDirChanged);
@@ -55,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(jsonFilesHandler, SIGNAL(updateNumberOfFiles(int)), this, SLOT(updateFilesToDownload(int)), Qt::UniqueConnection);
     futureWatcher->setFuture(jsonFileReaderConcurrent);
 
-    //TableView
+    //TableViewPlots
     plotModel = new PlotModel();
     ui->tableViewPlots->setModel(plotModel);
 
@@ -63,9 +66,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionEdit_State_Info, &QAction::triggered, this, &MainWindow::openStateInfoEditor);
     connect(ui->actionEdit_JSON_Fields, &QAction::triggered, this, &MainWindow::openJSONEditor);
     connect(ui->actionEdit_History_Data, &QAction::triggered, this, &MainWindow::openDataEditor);
-    //
+    connect(ui->pushButtonEditPlotGroups, &QPushButton::clicked, this, &MainWindow::openPlotsConfigDialog);
+
+    //in case this ever gets ported to mobile/tablet environment
     this->grabGesture(Qt::PanGesture);
     this->grabGesture(Qt::PinchGesture);
+
+    chartBuilder = new ChartBuilder(mdb);
 }
 
 void MainWindow::updateFilesToDownload(int newNumber) {
@@ -86,6 +93,7 @@ void MainWindow::getData() {
     }
     QThread *thread = new QThread();
     GetCovidInfo *gci = new GetCovidInfo();
+    gci->setDatabase(mdb);
     gci->moveToThread(thread);
 
     connect(thread, SIGNAL(started()), gci, SLOT(getMissingData()));
@@ -155,13 +163,21 @@ void MainWindow::jsonDirChanged() {
 }
 
 void MainWindow::fillComboBox() {
-    DatabaseInterface *dbi = new DatabaseInterface("fillTheComboBox");
-    QSqlDatabase mdb = dbi->getDatabase();
-
     ui->comboBoxStates->addItem("--Select a State--", -1);
-    QSqlQuery query("SELECT state_info_id, state_abbreviation FROM state_info", mdb);
+    QSqlQuery query("SELECT state_info_id, state_abbreviation, data_source_id FROM state_info", mdb);
     while (query.next()) {
+        //only data sources for first tab plots should be from covid tracking project
+        //i.e., skip adding states to first tab plots with data sources >= 2
+        if (query.value(2).toInt() >= 2) {
+            continue;
+        }
         ui->comboBoxStates->addItem(query.value(1).toString(), query.value(0).toInt());
+    }
+
+    //fill saved plots
+    QSqlQuery plotQuery("SELECT plot_grouping_id, plot_grouping_name FROM plot_grouping ORDER BY plot_grouping_name", mdb);
+    while (plotQuery.next()) {
+        ui->comboBoxPlotGrouping->addItem(plotQuery.value(1).toString(), plotQuery.value(0).toInt());
     }
 }
 
@@ -174,6 +190,7 @@ void MainWindow::plotPositiveTests() {
     int stateId = ui->comboBoxStates->itemData(currentIndex).toInt();
     int days = ui->spinBoxRollingAverage->value();
 
+
     plotModel->clearTable();
     ui->tableViewPlots->setModel(plotModel);
     plotModel->setStateId(stateId);
@@ -185,9 +202,11 @@ void MainWindow::plotPositiveTests() {
     chart = new MainChart();
     chart->legend()->hide();
     CustomLineSeries *series = new CustomLineSeries();
+    //std::unique_ptr<CustomLineSeries> series(new CustomLineSeries());
     CustomLineSeries *movingAvgSeries = new CustomLineSeries();
     CustomLineSeries *testsSeries = new CustomLineSeries();
     CustomLineSeries *testsMovingAvgSeries = new CustomLineSeries();
+    CustomLineSeries *positivitySeries = new CustomLineSeries();
 
     QVXYModelMapper *positiveMapper = new QVXYModelMapper();
     positiveMapper->setXColumn(0);
@@ -207,6 +226,15 @@ void MainWindow::plotPositiveTests() {
         movingAvgMapper->setSeries(movingAvgSeries);
         movingAvgMapper->setModel(plotModel);
         chart->addSeries(movingAvgSeries);
+    }
+
+    QVXYModelMapper *positivityMapper = new QVXYModelMapper();
+    if (ui->checkBoxPositivityRate->isChecked()) {
+        positivityMapper->setXColumn(0);
+        positivityMapper->setYColumn(13);
+        positivityMapper->setSeries(positivitySeries);
+        positivityMapper->setModel(plotModel);
+        chart->addSeries(positivitySeries);
     }
 
     QVXYModelMapper *testsMapper = new QVXYModelMapper();
@@ -236,6 +264,9 @@ void MainWindow::plotPositiveTests() {
     if (days > 2) {
         movingAvgSeries->attachAxis(axisX);
     }
+    if (ui->checkBoxPositivityRate->isChecked()) {
+        positivitySeries->attachAxis(axisX);
+    }
 
     QValueAxis *axisY = new QValueAxis();
     chart->addAxis(axisY, Qt::AlignLeft);
@@ -249,6 +280,18 @@ void MainWindow::plotPositiveTests() {
     chart->addAxis(axisTestsY, Qt::AlignRight);
     testsSeries->attachAxis(axisTestsY);
     testsMovingAvgSeries->attachAxis(axisTestsY);
+
+    //add new y axis for positivity
+    QValueAxis *axisPositivityAxis = new QValueAxis();
+    if (ui->checkBoxPositivityRate->isChecked()) {
+        chart->addAxis(axisPositivityAxis, Qt::AlignLeft);
+        positivitySeries->attachAxis(axisPositivityAxis);
+        //go ahead and attach pen
+        QPen positivityPen;
+        positivityPen.setStyle(Qt::DashDotDotLine);
+        positivityPen.setColor(QColor("#cc3300"));
+        positivitySeries->setPen(positivityPen);
+    }
 
     QPen posPen;
     posPen.setColor(QColor(0, 102, 204));
@@ -276,6 +319,7 @@ void MainWindow::plotPositiveTests() {
     connect(movingAvgSeries, SIGNAL(setToolTip(QPointF, bool, QAbstractSeries*)), ui->graphicsViewPositiveTestsPlots,  SLOT(showThatToolTip(QPointF, bool, QAbstractSeries*)));
     connect(testsSeries, SIGNAL(setToolTip(QPointF, bool, QAbstractSeries*)), ui->graphicsViewPositiveTestsPlots,  SLOT(showThatToolTip(QPointF, bool, QAbstractSeries*)));
     connect(testsMovingAvgSeries, SIGNAL(setToolTip(QPointF, bool, QAbstractSeries*)), ui->graphicsViewPositiveTestsPlots,  SLOT(showThatToolTip(QPointF, bool, QAbstractSeries*)));
+    connect(positivitySeries, SIGNAL(setToolTip(QPointF, bool, QAbstractSeries*)), ui->graphicsViewPositiveTestsPlots,  SLOT(showThatToolTip(QPointF, bool, QAbstractSeries*)));
 
     ui->graphicsViewPositiveTestsPlots->clearCustomLineSeriesVector();
 
@@ -285,9 +329,65 @@ void MainWindow::plotPositiveTests() {
         ui->graphicsViewPositiveTestsPlots->addCustomLineSeries(movingAvgSeries);
         ui->graphicsViewPositiveTestsPlots->addCustomLineSeries(testsMovingAvgSeries);
     }
-
+    if (ui->checkBoxPositivityRate->isChecked()) {
+        ui->graphicsViewPositiveTestsPlots->addCustomLineSeries(positivitySeries);
+    }
+    QChart *oldChart = ui->graphicsViewPositiveTestsPlots->chart();
     ui->graphicsViewPositiveTestsPlots->setMainChart(chart);
     ui->graphicsViewPositiveTestsPlots->setChart(chart);
+    delete oldChart;
+}
+
+void MainWindow::plotPlotGrouping() {
+    QSqlQuery getPlotsQuery = QSqlQuery(mdb);
+    getPlotsQuery.prepare("SELECT plot_name, "
+                        "state_info_id, "
+                        "json_mappings_id, "
+                        "show_differences, "
+                        "moving_average_days, "
+                        "axis_id, "
+                        "chart_type, "
+                        "pen_style, "
+                        "pen_color, "
+                        "pen_width, "
+                        "chart_alignment "
+                        "FROM plot "
+                        "WHERE plot_grouping_id=:pgi");
+    getPlotsQuery.bindValue(":pgi", ui->comboBoxPlotGrouping->currentData().toInt());
+    getPlotsQuery.exec();
+    chartBuilder->clearBuilder();
+    int stateInfoId{0};
+    int jsonMappingsId{0};
+    QString plotName{""};
+    while (getPlotsQuery.next()) {
+        stateInfoId = getPlotsQuery.value(1).toInt();
+        jsonMappingsId = getPlotsQuery.value(2).toInt();
+        plotName = getPlotsQuery.value(0).toString();
+        //SeriesInfo(int sII, int jMI, int cT, int aI, int cA, QString sN, bool sD, QString pC, int pW, int pT, int mAD) :
+        chartBuilder->addPlot(stateInfoId, jsonMappingsId,  getPlotsQuery.value(6).toInt(),
+                              getPlotsQuery.value(5).toInt(), getPlotsQuery.value(10).toInt() , plotName, getPlotsQuery.value(3).toBool(),
+                              getPlotsQuery.value(8).toString(), getPlotsQuery.value(9).toInt(), getPlotsQuery.value(7).toInt(),
+                              getPlotsQuery.value(4).toInt());
+    }
+    customChart = new MainChart();
+    customChart = chartBuilder->getChart();
+    // TODO: Add connections for CustomLineSeries to display labels
+    //ui->graphicsViewPositiveTestsPlots->clearCustomLineSeriesVector();
+    //ui->graphicsViewPositiveTestsPlots->addCustomLineSeries(series);
+    ui->graphicsViewCustom->clearCustomLineSeriesVector();
+    QList<QAbstractSeries*> seriesList = customChart->series();
+    for (auto sl: seriesList) {
+        //connect(series, SIGNAL(setToolTip(QPointF, bool, QAbstractSeries*)), ui->graphicsViewPositiveTestsPlots,  SLOT(showThatToolTip(QPointF, bool, QAbstractSeries*)));
+        qDebug() << sl->name() << sl->type();
+        if (sl->type() == QAbstractSeries::SeriesTypeLine) {
+            ui->graphicsViewCustom->addCustomLineSeries( dynamic_cast<CustomLineSeries*>(sl) );
+            connect(sl, SIGNAL(setToolTip(QPointF, bool, QAbstractSeries*)), ui->graphicsViewCustom,  SLOT(showThatToolTip(QPointF, bool, QAbstractSeries*)));
+        }
+    }
+    QChart *oldChart = ui->graphicsViewCustom->chart();
+    ui->graphicsViewCustom->setMainChart(customChart);
+    ui->graphicsViewCustom->setChart(customChart);
+    delete oldChart;
 }
 
 void MainWindow::receiveStatusMessage(QString message) {
@@ -322,12 +422,17 @@ void MainWindow::openDataEditor() {
     dataEditorDialog->show();
 }
 
+void MainWindow::openPlotsConfigDialog() {
+    plotsConfigDialog = new PlotsConfigDialog(mdb, this);
+    plotsConfigDialog->show();
+}
+
 void MainWindow::loadSettings() {
     QString basePath = QApplication::applicationDirPath();
     settingsFilePath = basePath + "/QCovidTrackerSettings.ini";
     QSettings settings(settingsFilePath, QSettings::NativeFormat);
     jsonFileDir = settings.value("jsonFileDir", basePath + "/json_downloads/").toString();
-    ui->splitter->restoreState(settings.value("splitter").toByteArray());
+    //ui->splitter->restoreState(settings.value("splitter").toByteArray());
     move(settings.value("pos", QPoint(100, 100)).toPoint());
     resize(settings.value("size", QSize(800, 600)).toSize());
 }
@@ -335,7 +440,7 @@ void MainWindow::loadSettings() {
 void MainWindow::saveSettings() {
     QSettings settings(settingsFilePath, QSettings::NativeFormat);
     settings.setValue("jsonFileDir", jsonFileDir);
-    settings.setValue("splitter", ui->splitter->saveState());
+    //settings.setValue("splitter", ui->splitter->saveState());
     settings.setValue("pos", pos());
     settings.setValue("size", size());
 }

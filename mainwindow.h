@@ -39,6 +39,8 @@
 #include "tableeditordialog.h"
 #include "jsonmappingseditordialog.h"
 #include "dataeditordialog.h"
+#include "chartbuilder.h"
+#include "plotsconfigdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -49,6 +51,10 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+    enum Roles {
+        DataSourceRole = Qt::UserRole + 1,
+        StateAbbreviationRole,
+    };
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void getData();
@@ -72,6 +78,7 @@ public:
     QFutureWatcher<void> *futureWatcher;
 
     PlotModel *plotModel;
+    ChartBuilder *chartBuilder;
 
     QString settingsFilePath;
     void loadSettings();
@@ -79,6 +86,7 @@ public:
 
     MainChart *chart;
     MainChartView *mainChartView;
+    MainChart *customChart;
 
     //Menu actions
     void openStateInfoEditor();
@@ -87,6 +95,8 @@ public:
     JSONMappingsEditorDialog *jsonEditorDialog;
     void openDataEditor();
     DataEditorDialog *dataEditorDialog;
+    void openPlotsConfigDialog();
+    PlotsConfigDialog *plotsConfigDialog;
 
 public slots:
     void stateVectorsReady(std::vector<StateInfo>);
@@ -95,8 +105,11 @@ public slots:
     void parsingFilesDone();
     void updateFilesToDownload(int);
     void statusBarMessageDone();
+    void plotPlotGrouping();
 private:
     Ui::MainWindow *ui;
+    DatabaseInterface *dbi;
+    QSqlDatabase mdb;
 };
 #endif // MAINWINDOW_H
 

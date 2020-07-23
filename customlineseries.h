@@ -29,6 +29,7 @@ class CustomLineSeries : public QLineSeries
     Q_OBJECT
 public:
     CustomLineSeries();
+    ~CustomLineSeries();
     qreal getYValue(qreal xValue);
 protected:
     void showHovered(QPointF pointF, bool state);
