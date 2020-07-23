@@ -10,7 +10,7 @@
     Because the JSON fields can change without notice, this program will automatically add new JSON fields into the database seamlessly.
     
   Currently the "Positive/Tests" tab show the positive number of positive test results along with the test numbers. 
-    It defaults to show the differences between consecutive days, as this proves to typically more useful that the total accumulated.
+    It defaults to show the differences between consecutive days, as this proves to typically more useful than the total accumulated.
     This is because differences show how fast outbreaks are happening.
     These graphs also allow the user to see how differences are stacking up against test numbers.
     <h3>Screenshots</h3>
@@ -35,6 +35,7 @@
   Added table model and item delegates for adding manual sources. Note that in the above screenshot, the data column fields are not from the Covid Tracking Project, but custom data fields.
   <br>
    There also exist options for zooming in and out using the mouse, using the arrow keys, and by using A, W, S, and D keys (not case-sensitive).
+
     
    <h2>Environment</h2>
         This was developed on Fedora 31 and openSUSE Tumbleweed using Qt Creator 4.12.3, Qt 5.14.2, and PostgreSQL 12.3.
@@ -54,6 +55,10 @@
 	<ul>
         	<li>Will probably add the ability that when the user clicks on a graph on the tab "Positive/Tests," the line stays highlighted.
         I will also add more graphs to "Other Plots," such as some stacked bar charts, bar and line graphs, and many others.</li>
+        <ul>
+        		<li><i>Update 2020-07-22: Scrapped the "Other Plots" and added "Custom Plots." My plans for "Other Plots" would not work in general since the data that the states keep outside of positive and
+        		negative tests varies too greatly.</i></li>
+        </ul>
 	</ul>
         <h3>Data Management</h3>
 	<ul>
