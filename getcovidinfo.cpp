@@ -32,8 +32,6 @@ void GetCovidInfo::setDatabase(QSqlDatabase p_mdb) {
 }
 
 void GetCovidInfo::getMissingData() {
-    //dbi = new DatabaseInterface("GetCovidInfo:MissingDataEdition");
-    //QSqlDatabase mdb = dbi->getDatabase();
     QSqlQuery covidProjectDS(mdb);
     covidProjectDS.prepare("SELECT data_source_id FROM data_source WHERE data_source_name=:ctp");
     covidProjectDS.bindValue(":ctp", "covid_tracking_project");

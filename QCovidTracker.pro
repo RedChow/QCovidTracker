@@ -30,6 +30,7 @@ SOURCES += \
     jsonitemdelegate.cpp \
     jsonmappingseditordialog.cpp \
     jsontablemodel.cpp \
+    logger.cpp \
     main.cpp \
     mainchart.cpp \
     mainchartview.cpp \
@@ -54,6 +55,7 @@ HEADERS += \
     jsonitemdelegate.h \
     jsonmappingseditordialog.h \
     jsontablemodel.h \
+    logger.h \
     mainchart.h \
     mainchartview.h \
     mainwindow.h \
@@ -67,6 +69,7 @@ FORMS += \
     dataeditordialog.ui \
     jsonmappingseditordialog.ui \
     mainwindow.ui \
+    mainwindow_copy.ui \
     plotconfigform.ui \
     plotsconfigdialog.ui \
     tableeditordialog.ui

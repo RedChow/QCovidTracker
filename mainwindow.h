@@ -41,6 +41,7 @@
 #include "dataeditordialog.h"
 #include "chartbuilder.h"
 #include "plotsconfigdialog.h"
+#include "logger.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -97,6 +98,10 @@ public:
     DataEditorDialog *dataEditorDialog;
     void openPlotsConfigDialog();
     PlotsConfigDialog *plotsConfigDialog;
+
+    //Logger
+    Logger *getDataLogger;
+    void clearLogs();
 
 public slots:
     void stateVectorsReady(std::vector<StateInfo>);

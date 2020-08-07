@@ -99,7 +99,6 @@ void PlotModel::populateData() {
         }
         positiveVector[vectorPosition] = pos;
         negativeVector[vectorPosition] = pos + neg;
-        //positivityRate.push_back( (qreal)pos/( (qreal)(pos + neg)) );
         vectorPosition++;
     }
 

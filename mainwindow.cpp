@@ -73,6 +73,10 @@ MainWindow::MainWindow(QWidget *parent)
     this->grabGesture(Qt::PinchGesture);
 
     chartBuilder = new ChartBuilder(mdb);
+
+    //Logger
+    getDataLogger = new Logger(this, ui->plainTextEditGetDataLogs);
+    connect(ui->pushButtonClearLogs, &QPushButton::clicked, this, &MainWindow::clearLogs);
 }
 
 void MainWindow::updateFilesToDownload(int newNumber) {
@@ -106,6 +110,7 @@ void MainWindow::getData() {
 
 void MainWindow::stateVectorsReady(std::vector<StateInfo> stateInfoVector) {
     ui->statusbar->showMessage(QString("Querying %1 files...").arg(stateInfoVector.size()), 10*1000);
+    getDataLogger->writeLog(QString("Querying %1 files").arg(stateInfoVector.size()));
     filesToDownload = stateInfoVector.size();
     countFiles = 0;
 
@@ -394,11 +399,13 @@ void MainWindow::receiveStatusMessage(QString message) {
     countFiles++;
     QString newMessage = message + " : " + QString("%1/%2").arg(countFiles).arg(filesToDownload);
     ui->statusbar->showMessage(newMessage, 5*1000);
+    getDataLogger->writeLog(newMessage);
 }
 
 void MainWindow::parsingFilesDone() {
     ui->statusbar->showMessage(QString("%1/%2 json files parsed").arg(countFiles).arg(filesToDownload), 10*1000);
     connect(ui->statusbar, &QStatusBar::messageChanged, this, &MainWindow::statusBarMessageDone);
+    getDataLogger->writeLog(QString("%1/%2 json files parsed").arg(countFiles).arg(filesToDownload));
 }
 
 void MainWindow::statusBarMessageDone() {
@@ -425,6 +432,10 @@ void MainWindow::openDataEditor() {
 void MainWindow::openPlotsConfigDialog() {
     plotsConfigDialog = new PlotsConfigDialog(mdb, this);
     plotsConfigDialog->show();
+}
+
+void MainWindow::clearLogs() {
+    ui->plainTextEditGetDataLogs->clear();
 }
 
 void MainWindow::loadSettings() {
