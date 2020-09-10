@@ -197,7 +197,14 @@ QVariant PlotModel::data(const QModelIndex &index, int role ) const {
             qreal numerator = (qreal) (tableData[0][index.row()] - tableData[0][index.row()-1]);
             qreal denominator = (qreal) (tableData[1][index.row()] - tableData[1][index.row()-1]);
             if (denominator != 0) {
-                return 100*numerator/denominator;
+                qreal rate = 100*numerator/denominator;
+                if (rate > 100) {
+                    return 100;
+                }
+                else if (rate < 0) {
+                    return 0;
+                }
+                return rate;
             }
         }
         return 0;

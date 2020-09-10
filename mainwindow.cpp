@@ -115,7 +115,8 @@ void MainWindow::stateVectorsReady(std::vector<StateInfo> stateInfoVector) {
     countFiles = 0;
 
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    QString baseUrl = QString("https://covidtracking.com/api/v1/states/");
+    //https://api.covidtracking.com/v1/states/ca/20200501.json
+    QString baseUrl = QString("https://api.covidtracking.com/v1/states/");
 
     int count{0};
     int p_stateId;
@@ -123,12 +124,13 @@ void MainWindow::stateVectorsReady(std::vector<StateInfo> stateInfoVector) {
     for (auto state: stateInfoVector) {
         url = baseUrl + state.stateAbbreviation + QString("/") + state.date.toString("yyyyMMdd") + QString(".json");
         if (state.stateAbbreviation == "us") {
-           url = QString("https://covidtracking.com/api/v1/us/") + state.date.toString("yyyyMMdd") + QString(".json");
+           url = QString("https://api.covidtracking.com/v1/us/") + state.date.toString("yyyyMMdd") + QString(".json");
         }
-    QNetworkReply *reply = manager->get(QNetworkRequest(QUrl(url)));
-    p_stateId = state.stateId;
-    connect(manager, &QNetworkAccessManager::finished, [this, reply, p_stateId] {this->emit replyFinished(reply, p_stateId);});
-    count++;
+        getDataLogger->writeLog(url);
+        QNetworkReply *reply = manager->get(QNetworkRequest(QUrl(url)));
+        p_stateId = state.stateId;
+        connect(manager, &QNetworkAccessManager::finished, [this, reply, p_stateId] {this->emit replyFinished(reply, p_stateId);});
+        count++;
     }
 }
 
@@ -149,6 +151,9 @@ void MainWindow::replyFinished(QNetworkReply *r,  int stateId) {
             readyReadJsonFiles->stop();
         }
         readyReadJsonFiles->start(5*1000);
+    }
+    else {
+        getDataLogger->writeLog(QString("%1").arg(r->error()));
     }
 }
 
