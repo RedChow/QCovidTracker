@@ -7,6 +7,12 @@ covid_history
 		covid_history_date: date
 	Constraints
 		UNIQUE: json_mappings_id, state_info_id, covid_history_date
+covid_history_json
+	Columns:type
+		state_info_id: integer
+		covid_history_date: date
+		data_source_id: integer
+		covid_history_json_docs: JSON
 data_type_enum
 	Columns:type
 		date_type_enum_id: serial (sometimes referred to as auto increment in other DB systems)
