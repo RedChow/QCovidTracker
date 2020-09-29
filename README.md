@@ -69,6 +69,10 @@
         However, I've left the design as is, because, although it could be a little better, it works and could still be possibly useful in expanding certain tables.
         The file state_info_import is include to populate the state_info table.
         
+	
+<i>Update 2020-09-29</i>: I have scrapped parsing the JSON fields and having an entry for each field in the table covid_history. I have instead opted for adding the table covid_history_json, which stores the history in JSON files. I will update the project with my Python web scrapers that automatically go and get information periodically through scheduled cron jobs. Storing the information is JSON files directly seems to be working better since parsing every single field isn't necessary. Plus, the data varies greatly different across the many different levels of government (city, county, state, hospital region, etc). This type of situation is exactly what the JSON column in Postgres was designed to handle.
+
+This also signifies the need for a data abstraction layer between the database and the program. A major change in the database structure is going to need a lot of work on the GUI and internals of the main program. Had I not been in such a hurry to get this done, I would have taken the time to completely unhinge the two. So, life lesson, take the time to do it right the first time can may take more time initially, but can save time down the road.
    <h2>TODO & Future Plans</h2> 
         There are many plans for filling this program out to make it more complete and a better tool.
         I will have to add in these plans as I find time.
